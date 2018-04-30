@@ -1,5 +1,5 @@
 import unittest
-from state import State, ImmState
+from state import State
 import parser
 
 MESSAGES = [
@@ -39,25 +39,23 @@ class ParserTest(unittest.TestCase):
 
 class StateTest(unittest.TestCase):
 
-    def testSettings(self):
+    def test_commands(self):
         state = State()
 
-        state.handle_cmd('update', ('round', 1))
-        self.assertEqual(state.game, {'round': 1})
+        state2 = state.handle_command('update', ('round', 1, 'game'))
 
-        state.handle_cmd('update', ('living_cells', 3, 'alex'))
-        print(state.game)
-        self.assertEqual(state.game, {'round': 1, 'living_cells': {'alex': 3}})
+        self.assertEqual(state2.game, {'round': 1})
 
-    def testSettings(self):
-        state = ImmState({'a': 2}, {'b':3})
+        state3 = state2.handle_command('update', ('living_cells', 3, 'alex'))
+        self.assertEqual(state3.game, {'round': 1, 'living_cells': {'alex': 3}})
+
+    def test_using(self):
+        state = State({'a': 2}, {'b':3})
 
         d = state.dict()
 
-        state.using('b', 4)
+        state.using(b=4)
         self.assertTrue(state.dict(), d)
 
-        state = state.using('c', 5, 'a')
-        print(state)
 
 unittest.main()

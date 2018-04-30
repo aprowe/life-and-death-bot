@@ -1,18 +1,22 @@
 import typing as T
-from logging import getLogger
-log = getLogger('parser')
+
+# Parser Module Made to handle parsing the stdin messages
 
 DEAD = 0
 PLAYER_0 = 1
 PLAYER_1 = 2
 
+# Parse a message straight from the game engine
 def parse_message(msg: str) -> T.Tuple[str, T.Any]:
-    words = msg.split()
+    if msg == '\n':
+        return (None, None)
 
-    cmd, args = words[0], words[1:]
-    log.debug(f'cmd, args: {cmd, args}')
-
+    # Break into command and args
     try:
+        words = msg.split()
+
+        cmd, args = words[0], words[1:]
+
         payload = globals()[f'{cmd}_cmd'](args)
         return (cmd, payload)
 
@@ -20,6 +24,11 @@ def parse_message(msg: str) -> T.Tuple[str, T.Any]:
         print(f"Unknown Command {cmd}: {args}")
         return (None, None)
 
+    # except Exception as e:
+    #     print(f"Error with Command {e}")
+    #     return (None, None)
+
+# parse a 'settings' command
 def settings_cmd(args: T.List[str]) -> T.Tuple[str, T.Any]:
     type, data = args[0:2]
     value: T.Any = None
@@ -35,7 +44,7 @@ def settings_cmd(args: T.List[str]) -> T.Tuple[str, T.Any]:
 
     return (type, value)
 
-
+# Parse an 'update' command
 def update_cmd(args) -> T.Tuple[str, str, T.Any]:
     player, type, data = args[0:3]
     value: T.Any = None
@@ -55,9 +64,11 @@ def update_cmd(args) -> T.Tuple[str, str, T.Any]:
 
     return (type, value, player)
 
+# parse an 'Action' command
 def action_cmd(args: T.List[str]) -> T.Tuple[str, int]:
     return (args[0], int(args[1]))
 
+# Class to generate actions
 class Command():
 
     @staticmethod
@@ -72,6 +83,7 @@ class Command():
     def pass_():
         return 'pass'
 
+# Parses a cell
 def parseCell(cell: str) -> int:
     if cell == '.':
         return DEAD
@@ -79,7 +91,7 @@ def parseCell(cell: str) -> int:
 
 def parseField(field: str) -> T.List:
     # Remove braces
-    cells = field[1:-1].split(',')
+    cells = field.split(',')
     return [parseCell(c) for c in cells]
 
 def isInt(arg:str) -> bool:

@@ -1,71 +1,87 @@
 import typing as T
+import numpy as np
+import util
 from pysistence import make_dict
 
-class ImmState():
+# To Ease debugging raise exceptions, but
+# in production we don't want to do these checks
+DEBUG = 1
 
-    def __init__(self, settings, game) -> None:
+class InvalidPlayException(Exception): pass
+
+# Immutable State Structure to hold and manipulate game state
+# Since thousands of these classes will be instantiated per move,
+# we need it to be as optimized as possible
+class State():
+
+    def __init__(self, settings={}, game={}) -> None:
         if type(settings) is dict:
             settings = make_dict(settings)
 
         if type(game) is dict:
             game = make_dict(game)
 
+        # Overall settings not expected to change
         self.settings = settings
+
+        # Game state exptected to change frequently
         self.game = game
 
-    def using(self, key: str, value: T.Any, player: str = None) -> 'ImmState':
-        if player == 'game' or player is None:
-            return ImmState(self.settings, self.game.using(**{key: value}))
+    # Initiate game board
+    def init(self) -> 'State':
+        # Initiate game board
+        board = np.zeros(
+            (self.settings['field_height'], self.settings['field_width'])
+        , dtype=np.uint8)
 
-        if key not in self.game:
-            key_dict = make_dict({})
-        else:
-            key_dict = self.game[key]
+        return self.using(board=board)
 
-        return ImmState(self.settings, self.game.using(**{
-            key: key_dict.using(**{player: value})
-        }))
+    # Step the game one normal game of life iteration
+    def step(self) -> 'State':
+        board = util.iterate(self.board)
 
-    def __str__(self):
+        return self.using(board=board)
+
+    # Kill a coordinate
+    def kill(self, x:int, y:int) -> 'State':
+        board = self.board.copy()
+        board[x,y] = 0
+        return self.using(board=board)
+
+    # Kill two spots and birth one
+    def birth(self, tx:int, ty:int, x:int, y:int, x2:int, y2:int) -> 'State':
+        board = self.game.board.copy()
+
+        if DEBUG:
+            if board[x,y] != board[x2,y2]:
+                raise InvalidPlayException('Both cells must be same team')
+
+            if (x,y) == (x2,y2):
+                raise InvalidPlayException('Cells must be different locations')
+
+        # Birth new location
+        board[tx,ty] = board[x,y]
+
+        # Kill other two
+        board[x,y] = board[x2,y2] = 0
+        return self.using(board=board)
+
+    # Function to create a new state with a changed field
+    def using(self, **kargs) -> 'State':
+        return State(self.settings, self.game.using(**kargs))
+
+    @property
+    def board(self) -> np.array:
+        return self.game['board']
+
+    def __str__(self) -> str:
         return str(self.dict())
 
     def __iter__(self):
         return self.dict().__iter__()
 
-    def dict(self):
+    def dict(self) -> dict:
         return {
             'settings': dict(self.settings.items()),
             'game': dict(self.game.items())
         }
-
-    def __call__(self, key, value):
-        return ImmState(self.settings, self.game.using(**{key: value}))
-
-
-class State():
-
-    def __init__(self) -> None:
-        self.settings : T.Dict[str, T.Any] = {}
-        self.game : T.Dict[str, T.Any] = {}
-
-    def update(self, player: str, key: str, value: T.Any) -> None:
-        if player == 'game':
-            self.game[key] = value
-            return
-
-        if key not in self.game:
-            self.game[key] = {}
-
-        self.game[key][player] = value
-
-    def setting(self, key: str, value: T.Any) -> None:
-        self.settings[key] = value
-
-    def handle_cmd(self, cmd: str, payload: T.Sequence[T.Any]) -> None:
-        if cmd == 'update':
-            self.update(*payload)
-        elif cmd == 'setting':
-            self.setting(*payload)
-
-    def immutable(self) -> ImmState:
-        return ImmState(self.settings, self.game)

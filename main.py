@@ -1,8 +1,19 @@
 import sys
-import parser
-from state import State
+from game import Game
 
-state = State()
+# Create Game
+game = Game()
+
+# Load Game state
+game.readGameFile('game.txt')
+print(game)
+
+# Read commands
 for input_msg in sys.stdin:
-    cmd, payload = parser.parse_message(input_msg)
-    state.handle_cmd(cmd, payload)
+
+    # Enter will progress the sime
+    if input_msg == '\n':
+        game.step()
+
+    game.readLine(input_msg)
+    print(game)
