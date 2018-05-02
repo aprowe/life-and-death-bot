@@ -1,10 +1,7 @@
 import typing as T
+from types_ import CellType, ActionType, Action
 
-# Parser Module Made to handle parsing the stdin messages
-
-DEAD = 0
-PLAYER_0 = 1
-PLAYER_1 = 2
+# message_parser Module Made to handle parsing the stdin messages
 
 # Parse a message straight from the game engine
 def parse_message(msg: str) -> T.Tuple[str, T.Any]:
@@ -68,25 +65,28 @@ def update_cmd(args) -> T.Tuple[str, str, T.Any]:
 def action_cmd(args: T.List[str]) -> T.Tuple[str, int]:
     return (args[0], int(args[1]))
 
-# Class to generate actions
-class Command():
-
-    @staticmethod
-    def kill(x, y):
+# Class to generate message that will eventaually go to stdout,
+# Adhering to the riddles.io API
+def command(action: Action) -> str:
+    type = action[0]
+    if type == ActionType.KILL:
+        x,y = action[1]
         return f'kill {x},{y}'
 
-    @staticmethod
-    def birth(x1, y1, x2, y2, x3, y3):
-        return f'birth {x1},{y1} {x2},{y2} {x3},{y3}'
+    elif type == ActionType.BIRTH:
+        c1, c2, c3 = action[1:]
+        return f'birth {c1[0]},{c1[1]} {c2[0]},{c2[1]} {c2[0]},{c2[1]}'
 
-    @staticmethod
-    def pass_():
+    elif type == ActionType.PASS:
         return 'pass'
+
+    raise Exception(f'Unknown actionType: {type}')
 
 # Parses a cell
 def parseCell(cell: str) -> int:
     if cell == '.':
-        return DEAD
+        return CellType.DEAD
+
     return int(cell) + 1
 
 def parseField(field: str) -> T.List:

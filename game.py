@@ -1,17 +1,24 @@
 import typing as T
 import sys
-import parser
+import message_parser
 import util
 import numpy as np
 
+from types_ import Action, ActionType
 from state import State
 from pysistence import make_dict
 
-# class to manage the flow of a game
+# Class to manage the flow of a game
 class Game():
 
     def __init__(self, state=State()) -> None:
         self.state = state
+
+    @staticmethod
+    def fromGameFile(file) -> 'Game':
+        g = Game()
+        g.readGameFile(file)
+        return g
 
     def step(self) -> None:
         self.state = self.state.step()
@@ -19,7 +26,7 @@ class Game():
     # Reads a line and updates state
     def readLine(self, line: str) -> None:
         # Parse incoming message
-        cmd, payload = parser.parse_message(line)
+        cmd, payload = message_parser.parse_message(line)
 
         if cmd is None:
             cmd = ''
@@ -33,11 +40,28 @@ class Game():
 
     # Reads state in from a game file
     def readGameFile(self, file: str) -> None:
-        with open(file, 'r') as f:
-            for line in f.readlines():
-                self.readLine(line)
+        try:
+            with open(file, 'r') as f:
+                for line in f.readlines():
+                    self.readLine(line)
+        except Exception as e:
+            print(f"Error reading game file: {e}")
+            raise e
 
-    # Handle a command from the parser to update state
+    # Applies an action to the game state
+    def action(self, action: Action) -> None:
+        type = action[0]
+
+        if type == ActionType.KILL:
+            target = action[1]
+            self.state = self.state.kill(*target)
+        elif type == ActionType.BIRTH:
+            target, c1, c2 = action[1:]
+            self.state = self.state.birth(*target, *c1, *c2)
+
+        self.step()
+
+    # Handle a command from the message_parser to update state
     # Returns the new state
     @staticmethod
     def update_state(state, command: str, payload: T.Tuple) -> 'State':
@@ -58,6 +82,9 @@ class Game():
                     state.settings['field_width'], state.settings['field_height'])
                 )
 
+            if key == 'round':
+                return state.using(round=value, activePlayer=(value % 2))
+
             if player == 'game' or player is None:
                 return state.using(**{key: value})
 
@@ -75,7 +102,14 @@ class Game():
         return state
 
     def __str__(self) -> str:
-        return util.board_to_str(self.state.board)
+        retVal  = f"Round: {self.state.game['round']}\n"
+        retVal += f"Active Player: {self.state.activePlayer}\n"
+
+        for p, n in self.state.cellCount().items():
+            retVal += f"Living {p}: {n}\n"
+
+        retVal += util.board_to_str(self.state.board)
+        return retVal
 
     def display(self) -> None:
         CURSOR_UP_ONE = '\x1b[1A'

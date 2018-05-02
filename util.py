@@ -69,7 +69,7 @@ def board_to_str(board: np.array) -> str:
     output.append('-----------------\n')
     for row in board:
         for cell in row:
-            output.append(CHARS[cell])
+            output.append(CHARS[cell] + ' ')
         output.append('\n')
 
     return ''.join(output)

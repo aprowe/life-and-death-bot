@@ -1,5 +1,6 @@
 import typing as T
 import numpy as np
+from types_ import CellType
 import util
 from pysistence import make_dict
 
@@ -19,6 +20,9 @@ class State():
             settings = make_dict(settings)
 
         if type(game) is dict:
+            if 'round' not in game:
+                game['round'] = 0
+
             game = make_dict(game)
 
         # Overall settings not expected to change
@@ -40,30 +44,34 @@ class State():
     def step(self) -> 'State':
         board = util.iterate(self.board)
 
-        return self.using(board=board)
+        return self.using(board=board, round=self.game['round'] + 1)
 
     # Kill a coordinate
     def kill(self, x:int, y:int) -> 'State':
         board = self.board.copy()
-        board[x,y] = 0
+        board[y,x] = 0
         return self.using(board=board)
 
     # Kill two spots and birth one
     def birth(self, tx:int, ty:int, x:int, y:int, x2:int, y2:int) -> 'State':
-        board = self.game.board.copy()
+        board = self.board.copy()
 
         if DEBUG:
-            if board[x,y] != board[x2,y2]:
+            if board[y,x] != board[y2, x2]:
                 raise InvalidPlayException('Both cells must be same team')
 
             if (x,y) == (x2,y2):
                 raise InvalidPlayException('Cells must be different locations')
 
+            if board[x,y] != self.activePlayer:
+                raise InvalidPlayException('Can Not sacrifice other players cells')
+
+
         # Birth new location
-        board[tx,ty] = board[x,y]
+        board[ty,tx] = board[y,x]
 
         # Kill other two
-        board[x,y] = board[x2,y2] = 0
+        board[y,x] = board[y2,x2] = 0
         return self.using(board=board)
 
     # Function to create a new state with a changed field
@@ -73,6 +81,35 @@ class State():
     @property
     def board(self) -> np.array:
         return self.game['board']
+
+    @property
+    def activePlayer(self) -> int:
+        return self.game['round'] % 2 + 1
+
+    # Returns a cell count of all the cells on the board
+    def cellCount(self) -> T.Dict[CellType, int]:
+        counts = {
+            CellType.DEAD: 0,
+            CellType.PLAYER_0: 0,
+            CellType.PLAYER_1: 0,
+        }
+
+        for coord, cell in self.board_iter():
+            counts[cell] += 1
+
+        return counts
+
+    # Returns an iterator that gives
+    # All the Cells positions and types
+    def board_iter(self, type=None) -> T.Iterator:
+        for y, row in enumerate(self.board):
+            for x, cell in enumerate(row):
+
+                # Add option for a filter
+                if type is not None and type != cell:
+                    continue
+
+                yield (x,y), cell
 
     def __str__(self) -> str:
         return str(self.dict())
