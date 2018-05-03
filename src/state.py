@@ -29,9 +29,22 @@ class State(persistent_dict.PDict):
 
     # Step the game one normal game of life iteration
     def step(self) -> 'State':
+        # Update Board
         board = util.iterate(self.board)
 
-        return self.using(board=board, activePlayer=self.activePlayer + 1 % 2)
+        # Increase round if needed (every other step)
+        round = self['round']
+        if self.activePlayer == 2:
+            round += 1
+
+        # Go to next player
+        activePlayer = (self.activePlayer % 2) + 1
+
+        return self.using(
+            board=board,
+            activePlayer=activePlayer,
+            round=round,
+        )
 
     # Kill a coordinate
     def kill(self, x:int, y:int) -> 'State':

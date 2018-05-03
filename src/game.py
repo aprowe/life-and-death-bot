@@ -8,20 +8,26 @@ from types_ import Action, ActionType
 from state import State
 from pysistence import make_dict
 
-# Class to manage the settings and flow of a game
 class Game():
+    """
+    Class to manage the settings and flow of a game
+    """
 
     def __init__(self, state=State()) -> None:
+        # Game Immutable State
         self.state = state
 
-        self.settings : T.Dict[str, T.Any]= dict()
+        # Game Settings
+        self.settings : T.Dict[str, T.Any] = dict()
 
+    # Loads a game from a text file
     @staticmethod
     def fromGameFile(file) -> 'Game':
         g = Game()
         g.readGameFile(file)
         return g
 
+    # Steps to the next iteration of the game state
     def step(self) -> None:
         self.state = self.state.step()
 
@@ -42,8 +48,9 @@ class Game():
             self.state = self.update_state(self.state, cmd, payload)
 
         elif cmd == 'action':
+            # When an action is called, set the bot id to your ID
             self.state = self.state.using(
-                activePlayer = self.state.activePlayer + 1 % 2
+                activePlayer = self.settings['your_botid'] + 1
             )
             self.state = self.state.step()
 

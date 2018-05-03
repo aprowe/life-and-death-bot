@@ -5,7 +5,7 @@ from types_ import CellType, ActionType, Action
 
 # Parse a message straight from the game engine
 def parse_message(msg: str) -> T.Tuple[str, T.Any]:
-    if msg == '\n':
+    if msg == '\n' or msg[0] == '#':
         return (None, None)
 
     # Break into command and args
@@ -31,7 +31,7 @@ def settings_cmd(args: T.List[str]) -> T.Tuple[str, T.Any]:
     value: T.Any = None
 
     if type == 'player_names':
-        value = data[1:-1].split(',')
+        value = data.split(',')
 
     elif type in ['timebank', 'time_per_move', 'your_botid', 'field_width', 'field_height', 'max_rounds']:
         value = int(data)
