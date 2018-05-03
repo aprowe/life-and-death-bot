@@ -6,6 +6,7 @@ class BotTest(unittest.TestCase):
 
     def test_get_moves(self):
         game = Game.fromGameFile('test_game.txt')
+        print(type(game.state))
 
         cells = game.state.cellCount()
 

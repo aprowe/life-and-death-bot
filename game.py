@@ -8,11 +8,13 @@ from types_ import Action, ActionType
 from state import State
 from pysistence import make_dict
 
-# Class to manage the flow of a game
+# Class to manage the settings and flow of a game
 class Game():
 
     def __init__(self, state=State()) -> None:
         self.state = state
+
+        self.settings : T.Dict[str, T.Any]= dict()
 
     @staticmethod
     def fromGameFile(file) -> 'Game':
@@ -31,10 +33,18 @@ class Game():
         if cmd is None:
             cmd = ''
 
-        self.state = self.update_state(self.state, cmd, payload)
-            # Update state with new settings or game state
+        if cmd == 'settings':
+            key, value = payload
+            self.settings[key] = value
 
-        if cmd == 'action':
+        elif cmd == 'update':
+            # Update state with game state
+            self.state = self.update_state(self.state, cmd, payload)
+
+        elif cmd == 'action':
+            self.state = self.state.using(
+                activePlayer = self.state.activePlayer + 1 % 2
+            )
             self.state = self.state.step()
 
     # Reads state in from a game file
@@ -62,51 +72,32 @@ class Game():
 
     # Handle a command from the message_parser to update state
     # Returns the new state
-    @staticmethod
-    def update_state(state, command: str, payload: T.Tuple) -> 'State':
-        # If it's an update settings command then just update the setting
-        if command == 'settings':
-            key, value = payload
-            settings = state.settings.using(**{key: value})
+    def update_state(self, state, command: str, payload: T.Tuple) -> 'State':
+        # If player is game, then simply update that key
+        key, value, player = payload
 
-            return State(settings, state.game)
+        ## Special handling for field updates. Change into numpy array
+        if key == 'field':
+            return state.using(board=np.array(value).reshape(
+                (self.settings['field_height'], self.settings['field_width'])
+            ))
 
-        elif command == 'update':
-            # If player is game, then simply update that key
-            key, value, player = payload
+        if key == 'round':
+            return state.using(round=value)
 
-            ## Special handling for field updates. Change into numpy array
-            if key == 'field':
-                return state.using(board=np.array(value).reshape(
-                    state.settings['field_width'], state.settings['field_height'])
-                )
+        # if theres a player, make the entries a dictionary
+        if key not in state:
+            key_dict = make_dict({})
+        else:
+            key_dict = state[key]
 
-            if key == 'round':
-                return state.using(round=value, activePlayer=(value % 2))
-
-            if player == 'game' or player is None:
-                return state.using(**{key: value})
-
-            # if theres a player, make the entries a dictionary
-            if key not in state.game:
-                key_dict = make_dict({})
-            else:
-                key_dict = state.game[key]
-
-            # replace that dictionary
-            return state.using(**{
-                key: key_dict.using(**{player: value})
-            })
-
-        elif command == 'action':
-            return state.using(
-                activePlayer = state.game['activePlayer'] + 1 % 2
-            )
-
-        return state
+        # replace that dictionary
+        return state.using(**{
+            key: key_dict.using(**{player: value})
+        })
 
     def __str__(self) -> str:
-        retVal  = f"Round: {self.state.game['round']}\n"
+        retVal  = f"Round: {self.state['round']}\n"
         retVal += f"Active Player: {self.state.activePlayer}\n"
 
         for p, n in self.state.cellCount().items():

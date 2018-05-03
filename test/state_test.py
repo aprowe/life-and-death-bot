@@ -1,12 +1,11 @@
 import unittest
 from state import State
-import message_parser
 import numpy as np
 
 class StateTest(unittest.TestCase):
 
     def test_using(self):
-        state = State({'a': 2}, {'b':3})
+        state = State({'b':3})
 
         d = state.dict()
 
@@ -14,7 +13,7 @@ class StateTest(unittest.TestCase):
         self.assertTrue(state.dict(), d)
 
     def test_birth(self):
-        state = State(game={
+        state = State({
             'board': np.array([
                 [0,1,2],
                 [0,1,2],
@@ -28,7 +27,7 @@ class StateTest(unittest.TestCase):
         self.assertSequenceEqual(list(state.board[2]), [0,0,2])
 
     def test_kill(self):
-        state = State(game={
+        state = State({
             'board': np.array([
                 [0,1,2],
                 [0,1,2],

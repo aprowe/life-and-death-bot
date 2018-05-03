@@ -21,7 +21,5 @@ def main() -> None:
             sys.stdout.write(message_parser.command(move) + '\n')
             sys.stdout.flush()
 
-        else:
-
 if __name__ == '__main__':
     main()
