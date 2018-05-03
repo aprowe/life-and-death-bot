@@ -71,11 +71,11 @@ def command(action: Action) -> str:
     type = action[0]
     if type == ActionType.KILL:
         x,y = action[1]
-        return f'kill {x},{y}'
+        return f'kill {y},{x}'
 
     elif type == ActionType.BIRTH:
         c1, c2, c3 = action[1:]
-        return f'birth {c1[0]},{c1[1]} {c2[0]},{c2[1]} {c2[0]},{c2[1]}'
+        return f'birth {c1[1]},{c1[0]} {c2[1]},{c2[0]} {c2[1]},{c2[0]}'
 
     elif type == ActionType.PASS:
         return 'pass'

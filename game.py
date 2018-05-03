@@ -31,11 +31,10 @@ class Game():
         if cmd is None:
             cmd = ''
 
-        if cmd in 'update,settings':
+        self.state = self.update_state(self.state, cmd, payload)
             # Update state with new settings or game state
-            self.state = self.update_state(self.state, cmd, payload)
 
-        elif cmd == 'action':
+        if cmd == 'action':
             self.state = self.state.step()
 
     # Reads state in from a game file
@@ -98,6 +97,11 @@ class Game():
             return state.using(**{
                 key: key_dict.using(**{player: value})
             })
+
+        elif command == 'action':
+            return state.using(
+                activePlayer = state.game['activePlayer'] + 1 % 2
+            )
 
         return state
 

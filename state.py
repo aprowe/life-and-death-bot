@@ -44,7 +44,7 @@ class State():
     def step(self) -> 'State':
         board = util.iterate(self.board)
 
-        return self.using(board=board, round=self.game['round'] + 1)
+        return self.using(board=board, activePlayer=self.activePlayer + 1 % 2)
 
     # Kill a coordinate
     def kill(self, x:int, y:int) -> 'State':
@@ -84,7 +84,15 @@ class State():
 
     @property
     def activePlayer(self) -> int:
-        return self.game['round'] % 2 + 1
+        return self.game['activePlayer']
+
+    @property
+    def yourId(self) -> int:
+        return self.settings['your_botid']
+
+    @property
+    def otherId(self) -> int:
+        return 2 - self.settings['your_botid']
 
     # Returns a cell count of all the cells on the board
     def cellCount(self) -> T.Dict[CellType, int]:

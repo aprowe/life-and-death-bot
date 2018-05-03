@@ -3,29 +3,25 @@ from game import Game
 from bot import Bot
 import message_parser
 
-# Create Game
-game = Game()
+def main() -> None:
+    # Create Game
+    game = Game()
 
-# Load Game state
-game.readGameFile('game.txt')
-print(game)
+    # Load Game state
+    game.readGameFile('game2.txt')
 
-bot = Bot()
+    bot = Bot()
 
-# Read commands
-for input_msg in sys.stdin:
-    if input_msg == 'b\n':
-        move = bot.findBestMove(game.state)
-
-        # Print the move
-        print(message_parser.command(move))
-        game.action(move)
-
-    # Enter will progress the sime
-    elif input_msg == '\n':
-        game.step()
-
-    else:
+    # Read commands
+    for input_msg in sys.stdin:
         game.readLine(input_msg)
+        if 'action' in input_msg:
+            move = bot.findBestMove(game.state)
 
-    print(game)
+            sys.stdout.write(message_parser.command(move) + '\n')
+            sys.stdout.flush()
+
+        else:
+
+if __name__ == '__main__':
+    main()
