@@ -1,10 +1,8 @@
 ## Add Vendor to path
 import sys
-sys.path.append('./vendor')
-
 from game import Game
 from bot import Bot
-import message_parser
+from message_parser import serialize_action
 
 # Debug if specified
 DEBUG = '-d' in sys.argv
@@ -15,10 +13,10 @@ def main() -> None:
 
     if DEBUG:
         # Load Game state
-        game.readGameFile('../test/game.txt')
+        game.readGameFile('test/game.txt')
 
-    # Create our bot
-    bot = Bot()
+    # Create our bot, with access to all the game state
+    bot = Bot(game)
 
     # Read commands
     for input_msg in sys.stdin:
@@ -26,7 +24,12 @@ def main() -> None:
         game.readLine(input_msg)
 
         if DEBUG:
-            if input_msg == '\n':
+            if input_msg == 'a\n':
+                move = bot.findBestMove()
+                print(move)
+                game.action(move)
+
+            elif input_msg == '\n':
                 game.step()
 
             print(game)
@@ -34,9 +37,9 @@ def main() -> None:
         # If action is required,
         # Then Print the bots move
         if 'action' in input_msg:
-            move = bot.findBestMove(game.state)
+            move = bot.findBestMove()
 
-            sys.stdout.write(message_parser.command(move) + '\n')
+            sys.stdout.write(serialize_action(move) + '\n')
             sys.stdout.flush()
 
 if __name__ == '__main__':

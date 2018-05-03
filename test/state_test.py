@@ -14,6 +14,7 @@ class StateTest(unittest.TestCase):
 
     def test_birth(self):
         state = State({
+            'activePlayer': 1,
             'board': np.array([
                 [0,1,2],
                 [0,1,2],
@@ -28,6 +29,7 @@ class StateTest(unittest.TestCase):
 
     def test_kill(self):
         state = State({
+            'activePlayer': 1,
             'board': np.array([
                 [0,1,2],
                 [0,1,2],

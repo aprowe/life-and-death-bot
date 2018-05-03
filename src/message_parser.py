@@ -1,7 +1,10 @@
 import typing as T
 from types_ import CellType, ActionType, Action
 
-# message_parser Module Made to handle parsing the stdin messages
+"""
+    Module Made to deserialize and serialize the strings
+    coming from and going to the Game enigine
+"""
 
 # Parse a message straight from the game engine
 def parse_message(msg: str) -> T.Tuple[str, T.Any]:
@@ -20,10 +23,6 @@ def parse_message(msg: str) -> T.Tuple[str, T.Any]:
     except KeyError:
         print(f"Unknown Command {cmd}: {args}")
         return (None, None)
-
-    # except Exception as e:
-    #     print(f"Error with Command {e}")
-    #     return (None, None)
 
 # parse a 'settings' command
 def settings_cmd(args: T.List[str]) -> T.Tuple[str, T.Any]:
@@ -67,15 +66,15 @@ def action_cmd(args: T.List[str]) -> T.Tuple[str, int]:
 
 # Class to generate message that will eventaually go to stdout,
 # Adhering to the riddles.io API
-def command(action: Action) -> str:
+def serialize_action(action: Action) -> str:
     type = action[0]
     if type == ActionType.KILL:
         x,y = action[1]
-        return f'kill {y},{x}'
+        return f'kill {x},{y}'
 
     elif type == ActionType.BIRTH:
         c1, c2, c3 = action[1:]
-        return f'birth {c1[1]},{c1[0]} {c2[1]},{c2[0]} {c2[1]},{c2[0]}'
+        return f'birth {c1[0]},{c1[1]} {c2[0]},{c2[1]} {c3[0]},{c3[1]}'
 
     elif type == ActionType.PASS:
         return 'pass'

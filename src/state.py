@@ -2,7 +2,7 @@ import typing as T
 import numpy as np
 from types_ import CellType
 import util
-from pysistence import persistent_dict, make_dict
+from pysistence.persistent_dict import PDict
 
 # To Ease debugging raise exceptions, but
 # in production we don't want to do these checks
@@ -13,11 +13,11 @@ class InvalidPlayException(Exception): pass
 # Immutable State Structure to hold and manipulate game state
 # Since thousands of these classes will be instantiated per move,
 # we need it to be as optimized as possible
-class State(persistent_dict.PDict):
+class State(PDict):
 
-    def __init__(self, kargs={}):
+    def __init__(self, kargs={}) -> None:
         kargs = {
-            'activePlayer': 1,
+            'activePlayer': 0,
             'board': np.array([[]]),
             **kargs
         }
@@ -25,7 +25,7 @@ class State(persistent_dict.PDict):
 
     ## Overwrites
     def using(self, *args, **kargs) -> 'State':
-        return State(persistent_dict.PDict.using(self, *args, **kargs))
+        return State(PDict.using(self, *args, **kargs))
 
     # Step the game one normal game of life iteration
     def step(self) -> 'State':
@@ -63,7 +63,7 @@ class State(persistent_dict.PDict):
             if (x,y) == (x2,y2):
                 raise InvalidPlayException('Cells must be different locations')
 
-            if board[x,y] != self.activePlayer:
+            if board[y,x] != self.activePlayer:
                 raise InvalidPlayException('Can Not sacrifice other players cells')
 
 
@@ -113,5 +113,5 @@ class State(persistent_dict.PDict):
     def __iter__(self):
         return self.dict().__iter__()
 
-    def dict(self) -> dict:
+    def dict(self) -> T.Dict:
         return dict(self.items())

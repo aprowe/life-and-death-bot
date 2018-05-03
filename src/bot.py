@@ -3,33 +3,34 @@ from types_ import Pass, Birth, Kill, Action, CellType
 from random import choice
 from state import State
 
+class InvalidRequest(Exception): pass
+
 # Class to Handle higher level functionality of game analysis
 class Bot():
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, game=None) -> None:
+        self.game = game
 
     # Currently gets a random move and performs that
-    @staticmethod
-    def findBestMove(state: State) -> Action:
-        moves = Bot.getMoves(state)
+    def findBestMove(self) -> Action:
+        moves = Bot.getMoves(self.game.state)
         return choice(moves)
 
     # Gets n number of random cells
     @staticmethod
-    def randomCell(state, num=1, type=None) -> Action:
+    def randomCell(state, num=1, type=None) -> T.List[T.Tuple[int,int]]:
         cells = [
             c for c, cell in state.board_iter(type=type)
         ]
 
-        retVal = []
+        retVal : T.List[T.Tuple[int, int]] = []
         while len(retVal) < num:
             r = choice(cells)
             retVal.append(r)
             cells.remove(r)
 
             if len(cells) == 0:
-                raise Exception("Not Enough Cells to Choose From")
+                raise InvalidRequest("Not Enough Cells to Choose From")
 
         return retVal
 
@@ -48,7 +49,12 @@ class Bot():
 
         ## Find Birth Moves
         for (tx,ty), _ in state.board_iter(type=CellType.DEAD):
-            cells = Bot.randomCell(state, 2, type=state.activePlayer)
-            moves.append(Birth((tx,ty), *cells))
+            try:
+                cells = Bot.randomCell(state, 2, type=state.activePlayer)
+                moves.append(Birth((tx,ty), *cells))
+
+            ## Will hit this exception if theres less than 2 cells
+            except InvalidRequest as e:
+                pass
 
         return moves

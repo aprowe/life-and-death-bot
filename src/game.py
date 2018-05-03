@@ -13,7 +13,7 @@ class Game():
     Class to manage the settings and flow of a game
     """
 
-    def __init__(self, state=State()) -> None:
+    def __init__(self, state :State = State()) -> None:
         # Game Immutable State
         self.state = state
 
@@ -52,7 +52,6 @@ class Game():
             self.state = self.state.using(
                 activePlayer = self.settings['your_botid'] + 1
             )
-            self.state = self.state.step()
 
     # Reads state in from a game file
     def readGameFile(self, file: str) -> None:
@@ -74,6 +73,9 @@ class Game():
         elif type == ActionType.BIRTH:
             target, c1, c2 = action[1:]
             self.state = self.state.birth(*target, *c1, *c2)
+
+        else:
+            raise Exception(f"Unknown Action TYpe: {type}")
 
         self.step()
 
@@ -116,7 +118,7 @@ class Game():
     def display(self) -> None:
         CURSOR_UP_ONE = '\x1b[1A'
 
-        for i in range(self.state.settings['field_width']):
+        for i in range(self.settings['field_width']):
             sys.stdout.write(CURSOR_UP_ONE)
 
         sys.stdout.write(CURSOR_UP_ONE)
