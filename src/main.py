@@ -1,7 +1,10 @@
 ## Add Vendor to path
 import sys
 from game import Game
-from bot import Bot
+from state import State
+import numpy as np
+# from bot import Bot
+from minmaxbot import MinMaxBot as Bot
 from message_parser import serialize_action
 
 # Debug if specified
@@ -13,10 +16,20 @@ def main() -> None:
 
     if DEBUG:
         # Load Game state
-        game.readGameFile('test/game.txt')
+        game.state = State({
+            'board': np.array([
+                [1,1,0,0],
+                [1,0,0,0],
+                [0,0,0,2],
+                [0,0,2,2],
+            ])
+        })
+        # game.readGameFile('test/game2.txt')
 
     # Create our bot, with access to all the game state
     bot = Bot(game)
+
+    print(game)
 
     # Read commands
     for input_msg in sys.stdin:
@@ -26,7 +39,7 @@ def main() -> None:
         if DEBUG:
             if input_msg == 'a\n':
                 move = bot.findBestMove()
-                print(move)
+                print('move', move)
                 game.action(move)
 
             elif input_msg == '\n':

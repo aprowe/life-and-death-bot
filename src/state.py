@@ -1,6 +1,6 @@
 import typing as T
 import numpy as np
-from types_ import CellType
+from types_ import CellType, ActionType, Action, Coord
 import util
 from pysistence.persistent_dict import PDict
 
@@ -19,6 +19,7 @@ class State(PDict):
         kargs = {
             'activePlayer': 0,
             'board': np.array([[]]),
+            'round': 0,
             **kargs
         }
         super().__init__(kargs)
@@ -37,12 +38,9 @@ class State(PDict):
         if self.activePlayer == 2:
             round += 1
 
-        # Go to next player
-        activePlayer = (self.activePlayer % 2) + 1
-
         return self.using(
             board=board,
-            activePlayer=activePlayer,
+            activePlayer=self.nextPlayer,
             round=round,
         )
 
@@ -66,13 +64,29 @@ class State(PDict):
             if board[y,x] != self.activePlayer:
                 raise InvalidPlayException('Can Not sacrifice other players cells')
 
-
         # Birth new location
         board[ty,tx] = board[y,x]
 
         # Kill other two
         board[y,x] = board[y2,x2] = 0
         return self.using(board=board)
+
+    # Applies an action to the game state
+    def apply(self, action: Action) -> 'State':
+        type = action[0]
+
+        if type == ActionType.KILL:
+            target = action[1]
+            return self.kill(*target).step()
+        elif type == ActionType.BIRTH:
+            target, c1, c2 = action[1:]
+            return self.birth(*target, *c1, *c2).step()
+
+        elif type == ActionType.PASS:
+            return self.step()
+
+        raise Exception(f"Unknown Action Type: {type}")
+
 
     @property
     def board(self) -> np.array:
@@ -81,6 +95,10 @@ class State(PDict):
     @property
     def activePlayer(self) -> int:
         return self['activePlayer']
+
+    @property
+    def nextPlayer(self) -> int:
+        return self['activePlayer'] % 2 + 1
 
     # Returns a cell count of all the cells on the board
     def cellCount(self) -> T.Dict[CellType, int]:
@@ -97,7 +115,7 @@ class State(PDict):
 
     # Returns an iterator that gives
     # All the Cells positions and types
-    def board_iter(self, type=None) -> T.Iterator:
+    def board_iter(self, type=None) -> T.Iterator[T.Tuple[Coord, int]]:
         for y, row in enumerate(self.board):
             for x, cell in enumerate(row):
 

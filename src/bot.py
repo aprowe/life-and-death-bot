@@ -25,12 +25,12 @@ class Bot():
 
         retVal : T.List[T.Tuple[int, int]] = []
         while len(retVal) < num:
+            if len(cells) == 0:
+                raise InvalidRequest("Not Enough Cells to Choose From")
+
             r = choice(cells)
             retVal.append(r)
             cells.remove(r)
-
-            if len(cells) == 0:
-                raise InvalidRequest("Not Enough Cells to Choose From")
 
         return retVal
 
@@ -42,8 +42,7 @@ class Bot():
 
         ## Find Kill moves
         for (x,y), cell in state.board_iter():
-            if cell == CellType.DEAD:
-                continue
+            if cell == CellType.DEAD: continue
 
             moves.append(Kill(x,y))
 

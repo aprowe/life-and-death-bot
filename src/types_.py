@@ -28,9 +28,6 @@ Action = T.Union[
     PassAction,
     KillAction,
     BirthAction,
-    T.Tuple[ActionType],  # Pass
-    T.Tuple[ActionType, Coord], #
-    T.Tuple[ActionType, Coord, Coord, Coord]
 ]
 
 ## Helper Functions to Create Acitons

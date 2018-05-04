@@ -65,19 +65,7 @@ class Game():
 
     # Applies an action to the game state
     def action(self, action: Action) -> None:
-        type = action[0]
-
-        if type == ActionType.KILL:
-            target = action[1]
-            self.state = self.state.kill(*target)
-        elif type == ActionType.BIRTH:
-            target, c1, c2 = action[1:]
-            self.state = self.state.birth(*target, *c1, *c2)
-
-        else:
-            raise Exception(f"Unknown Action TYpe: {type}")
-
-        self.step()
+        self.state = self.state.apply(action)
 
     # Handle a command from the message_parser to update state
     # Returns the new state

@@ -1,6 +1,7 @@
 import unittest
 from state import State
 import numpy as np
+from types_ import Kill, ActionType
 
 class StateTest(unittest.TestCase):
 
@@ -46,3 +47,21 @@ class StateTest(unittest.TestCase):
         self.assertSequenceEqual(list(newState.board[0]), [0,1,0])
         self.assertSequenceEqual(list(newState.board[1]), [0,1,2])
         self.assertSequenceEqual(list(newState.board[2]), [0,1,2])
+
+    def test_apply(self):
+        state = State({
+            'activePlayer': 1,
+            'board': np.array([
+                [0,1,2],
+                [0,1,2],
+                [0,1,2],
+            ]),
+            'round': 1
+        })
+
+        newState = state.apply(Kill(1,1))
+        newState2 = state.kill(1,1).step()
+
+        self.assertSequenceEqual(list(newState.board[0]), list(newState2.board[0]))
+        self.assertSequenceEqual(list(newState.board[1]), list(newState2.board[1]))
+        self.assertSequenceEqual(list(newState.board[2]), list(newState2.board[2]))
