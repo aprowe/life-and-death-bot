@@ -1,8 +1,9 @@
 import numpy as np
+from types_ import CellType
 
-DEAD = 0
-PLAYER_0 = 1
-PLAYER_1 = 2
+DEAD = CellType.DEAD
+PLAYER_1 = CellType.PLAYER_1
+PLAYER_2 = CellType.PLAYER_2
 
 # Converts a board to a binary board
 def to_binary(board: np.array) -> np.array:
@@ -41,10 +42,10 @@ def iterate(board: np.array) -> np.array:
     retVal = np.zeros(board.shape, dtype=np.uint8)
 
     # Spawn player 0 births
-    retVal[birth1] = PLAYER_0
+    retVal[birth1] = PLAYER_1
 
     # Spawn player 1 births
-    retVal[birth2] = PLAYER_1
+    retVal[birth2] = PLAYER_2
 
     # Keep Surviving cells
     retVal[survive] = board[survive]
@@ -59,8 +60,8 @@ DEAD_CHAR = '.'
 
 CHARS = {
     DEAD: DEAD_CHAR,
-    PLAYER_0: P1_CHAR,
-    PLAYER_1: P2_CHAR,
+    PLAYER_1: P1_CHAR,
+    PLAYER_2: P2_CHAR,
 }
 
 def board_to_str(board: np.array) -> str:

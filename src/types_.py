@@ -3,8 +3,8 @@ from enum import Enum, IntEnum
 
 class CellType(IntEnum):
     DEAD     = 0
-    PLAYER_0 = 1
-    PLAYER_1 = 2
+    PLAYER_1 = 1
+    PLAYER_2 = 2
 
 # Enumeration for an action type
 class ActionType(Enum):

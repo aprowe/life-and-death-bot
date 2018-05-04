@@ -9,22 +9,24 @@ from heuristics import SIMPLE
 
 # Class to Handle higher level functionality of game analysis
 class MinMaxBot(Bot):
-    def __init__(self, game: Game, heuristic: T.Callable = SIMPLE, lookahead: int=3) -> None:
+    def __init__(self, game: Game, heuristic: T.Callable = SIMPLE,
+    lookahead: int=2) -> None:
         super().__init__(game)
         self.lookahead = lookahead
         self.heuristic = heuristic
+        self.player = CellType.PLAYER_1
 
     def alphabeta(self,
             state: State,
             depth: int,
             alpha: float=-np.inf,
             beta:  float= np.inf,
-            current_bot:bool=True) -> float:
+            maximize:bool=False) -> float:
 
         if depth == 0:
-            return self.heuristic(state, CellType.PLAYER_0)
+            return self.heuristic(state, self.player)
 
-        if current_bot:
+        if maximize:
             # tries to maximize players score
             v = -np.inf
             moves = Bot.getMoves(state)
@@ -57,12 +59,11 @@ class MinMaxBot(Bot):
     # Currently gets a random move and performs that
     # @overrides(Bot)
     def findBestMove(self) -> Action:
+        self.player = self.game.state.activePlayer
         moves = Bot.getMoves(self.game.state)
+
         best_score = -np.inf
         best_move = None
-
-        # pool = Pool(8)
-        # scores = pool.map(fn, moves)
 
         #parallazable!
         for move in moves:

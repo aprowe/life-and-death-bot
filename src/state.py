@@ -17,7 +17,7 @@ class State(PDict):
 
     def __init__(self, kargs={}) -> None:
         kargs = {
-            'activePlayer': 0,
+            'activePlayer': CellType.PLAYER_1,
             'board': np.array([[]]),
             'round': 0,
             **kargs
@@ -104,8 +104,8 @@ class State(PDict):
     def cellCount(self) -> T.Dict[CellType, int]:
         counts = {
             CellType.DEAD: 0,
-            CellType.PLAYER_0: 0,
             CellType.PLAYER_1: 0,
+            CellType.PLAYER_2: 0,
         }
 
         for coord, cell in self.board_iter():
