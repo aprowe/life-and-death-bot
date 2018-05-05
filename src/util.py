@@ -11,6 +11,16 @@ def to_binary(board: np.array) -> np.array:
     b[b >= 1] = 1
     return b
 
+def count_neighbors(mat : np.array) -> np.array:
+    B = np.pad(mat, 1, 'constant')
+
+    # Count neighbours
+    N = (B[0:-2,0:-2] + B[0:-2,1:-1] + B[0:-2,2:] +
+         B[1:-1,0:-2]                + B[1:-1,2:] +
+         B[2:  ,0:-2] + B[2:  ,1:-1] + B[2:  ,2:])
+
+    return N
+
 # Gives the next step of a game of life
 def iterate(board: np.array) -> np.array:
     padded = np.pad(board, 1, 'constant')
@@ -50,6 +60,23 @@ def iterate(board: np.array) -> np.array:
     # Keep Surviving cells
     retVal[survive] = board[survive]
     return retVal
+
+def pad_shape(mat: np.array) -> np.array:
+    mat = np.pad(mat, 1, 'constant')
+
+    # Stack its iteration onto itself,
+    # so we can get an idea of how much
+    # space it takes up
+    iterated_mat = mat + iterate(mat)
+
+    N = count_neighbors(iterated_mat)
+
+    # Mark where there are cells that don't
+    # interact with the shape within the grid
+    mat[N == 0] = -1
+
+    # Update the shape
+    return mat
 
 ## VT100 control codes
 CURSOR_UP_ONE = '\x1b[1A'

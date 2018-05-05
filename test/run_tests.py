@@ -8,5 +8,6 @@ from bot_test import *
 from state_test import *
 from parser_test import *
 from game_test import *
+from util_test import *
 
 unittest.main()
