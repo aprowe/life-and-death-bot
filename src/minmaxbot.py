@@ -3,8 +3,9 @@ import typing as T
 from bot import Bot
 from state import State
 from game import Game
-from types_ import Action, CellType
+from types_ import Action, CellType, Coord, Pass
 import numpy as np
+import util
 from heuristics import SIMPLE
 
 # Class to Handle higher level functionality of game analysis
@@ -22,6 +23,9 @@ class MinMaxBot(Bot):
             alpha: float=-np.inf,
             beta:  float= np.inf,
             maximize:bool=False) -> float:
+
+        if state.is_empty():
+            return 0
 
         if depth == 0:
             return self.heuristic(state, self.player)
@@ -56,22 +60,46 @@ class MinMaxBot(Bot):
                     break #beta cutoff
         return v
 
-    # Currently gets a random move and performs that
-    # @overrides(Bot)
-    def findBestMove(self) -> Action:
-        self.player = self.game.state.activePlayer
-        moves = Bot.getMoves(self.game.state)
+    def findMoveForState(self, state: State) -> T.Tuple[Action, int]:
+        if state.is_empty():
+            return (Pass(), 0)
 
+        # Remove pass
+        moves = Bot.getMoves(state)[1:]
+
+        state_score = self.heuristic(state, self.player)
         best_score = -np.inf
         best_move = None
 
         #parallazable!
         for move in moves:
             #update move
-            score = self.alphabeta(self.game.state.apply(move), self.lookahead)
+            score = self.alphabeta(state.apply(move), self.lookahead) - state_score
             print(move, score)
             if best_score < score:
                 best_move = move
                 best_score = score
+
+        return (best_move, best_score)
+
+    # Currently gets a random move and performs that
+    # @overrides(Bot)
+    def findBestMove(self) -> Action:
+        self.player = self.game.state.activePlayer
+
+        substates : T.List[T.Tuple[Coord, State]] = [
+            (coord, self.game.state.using(board=board))
+            for coord, board in util.get_subboards(self.game.state.board, 8)
+        ]
+
+        moves : T.List[T.Tuple[Coord, Action, int]] = [
+            (coord, *self.findMoveForState(state)) for coord, state in substates
+        ]
+
+        moves = sorted(moves, key = lambda t: t[2])
+
+        coords, best_move, best_score = moves[0]
+
+        best_move = util.add_coords_to_action(coords, best_move)
 
         return best_move
