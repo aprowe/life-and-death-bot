@@ -1,6 +1,7 @@
 import typing as T
 from types_ import Pass, Birth, Kill, Action, CellType
 from random import choice
+import util
 from state import State
 
 class InvalidRequest(Exception): pass
@@ -40,20 +41,22 @@ class Bot():
             Pass()
         ]
 
-        ## Find Kill moves
-        for (x,y), cell in state.board_iter():
-            if cell == CellType.DEAD: continue
-
+        ## Find Kill moves for other player
+        for (x,y), cell in state.board_iter(type=state.nextPlayer):
             moves.append(Kill(x,y))
 
-        ## Find Birth Moves
-        for (tx,ty), _ in state.board_iter(type=CellType.DEAD):
-            try:
-                cells = Bot.randomCell(state, 2, type=state.activePlayer)
-                moves.append(Birth((tx,ty), *cells))
+        ## Find Birth Moves that are 'non-destructive'
+        # for ty,tx in util.neighbor_count_coords(state.board, [2,3]):
+        #     try:
+        #         cells = Bot.randomCell(state, 2, type=state.activePlayer)
+        #         moves.append(Birth((tx,ty), *cells))
+        #
+        #     ## Will hit this exception if theres less than 2 cells
+        #     except InvalidRequest as e:
+        #         pass
 
-            ## Will hit this exception if theres less than 2 cells
-            except InvalidRequest as e:
-                pass
+        # Add moves that kill your own cell
+        for (x,y), cell in state.board_iter(type=state.activePlayer):
+            moves.append(Kill(x,y))
 
         return moves

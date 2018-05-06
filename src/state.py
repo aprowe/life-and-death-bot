@@ -100,6 +100,9 @@ class State(PDict):
     def nextPlayer(self) -> int:
         return self['activePlayer'] % 2 + 1
 
+    def is_empty(self) -> bool:
+        return bool(np.sum(self.board) == 0)
+
     # Returns a cell count of all the cells on the board
     def cellCount(self) -> T.Dict[CellType, int]:
         counts = {
