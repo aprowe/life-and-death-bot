@@ -131,3 +131,23 @@ class UtilTest(unittest.TestCase):
 
         output = util.get_neighborhood(board, (1,1), 2)
         np.testing.assert_array_equal(target2, output)
+
+    def test_winner(self):
+        board = np.array([
+            [0,1],
+            [0,0],
+        ])
+
+        self.assertEqual(util.check_win(board), 1)
+
+        board = np.array([
+            [0,2],
+            [0,0],
+        ])
+        self.assertEqual(util.check_win(board), 2)
+
+        board = np.array([
+            [0,2],
+            [1,0],
+        ])
+        self.assertEqual(util.check_win(board), 0)

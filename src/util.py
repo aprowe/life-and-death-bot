@@ -1,6 +1,6 @@
 import numpy as np
 import typing as T
-from types_ import CellType, Coord, ActionType, Action, Kill, Birth, Pass
+from types_ import CellType, Coord, ActionType, Action, Kill, Birth
 
 DEAD = CellType.DEAD
 PLAYER_1 = CellType.PLAYER_1
@@ -90,7 +90,6 @@ def pad_shape(mat: np.array) -> np.array:
 def get_neighborhood(board: np.array, coord: Coord, size: int) -> np.array:
     x, y = coord
     h, w = board.shape
-    print(x,y)
 
     x_slice = slice(max(x - size, 0), min(x + size + 1, w))
     y_slice = slice(max(y - size, 0), min(y + size + 1, h))
@@ -102,6 +101,9 @@ def mask_board(board : np.array, cell : CellType) -> np.array:
     board = board.copy()
     return (board == cell).astype(int)
 
+# Breaks a board into smaller boards
+# size: the size of the entire board, i.e.
+# 5 means 5x5 subboards are returned
 def get_subboards(board : np.array, size : int, offset=None) -> np.array:
     if offset == None:
         offset = int(np.floor((size - 1) / 2))
@@ -115,6 +117,24 @@ def get_subboards(board : np.array, size : int, offset=None) -> np.array:
         for j in range(0, h, offset)
     ]
 
+# Checks for win, returns the player that won
+# Returns 0 if no win
+def check_win(board: np.array) -> int:
+    uniques = np.unique(board)
+    if CellType.PLAYER_1 in uniques and CellType.PLAYER_2 in uniques:
+        return 0
+
+    if CellType.PLAYER_1 in uniques:
+        return CellType.PLAYER_1
+
+    if CellType.PLAYER_2 in uniques:
+        return CellType.PLAYER_2
+
+    return 0
+
+# Adds coordinates to an action,
+# This for when a board is converted into smaller boards, an action is
+# chosen, and it's coordinates need to be re-normalized to the full board.
 def add_coords_to_action(coord: Coord, action:Action) -> Action:
     if action[0] == ActionType.PASS:
         return action

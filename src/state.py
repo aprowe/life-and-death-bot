@@ -20,6 +20,7 @@ class State(PDict):
             'activePlayer': CellType.PLAYER_1,
             'board': np.array([[]]),
             'round': 0,
+            'winner': 0,
             **kargs
         }
         super().__init__(kargs)
