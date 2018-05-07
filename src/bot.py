@@ -21,7 +21,7 @@ class Bot():
     @staticmethod
     def randomCell(state, num=1, type=None) -> T.List[T.Tuple[int,int]]:
         cells = [
-            c for c, cell in state.board_iter(type=type)
+            tuple(c) for c in state.board_iter(type=type)
         ]
 
         retVal : T.List[T.Tuple[int, int]] = []
@@ -42,10 +42,12 @@ class Bot():
         ]
 
         ## Find Kill moves for other player
-        for (x,y), cell in state.board_iter(type=state.nextPlayer):
+        for (x,y) in state.board_iter(type=state.nextPlayer):
             moves.append(Kill(x,y))
 
-        ## Find Birth Moves that are 'non-destructive'
+        ## Find Birth Moves that are 'non-destructive'\
+        ## i.e. births that will survive to the next round, and not
+        ## kill any other cells by overcrowding
         for ty,tx in util.neighbor_count_coords(state.board, [2,3]):
             try:
                 cells = Bot.randomCell(state, 2, type=state.activePlayer)
@@ -56,7 +58,7 @@ class Bot():
                 pass
 
         # Add moves that kill your own cell
-        for (x,y), cell in state.board_iter(type=state.activePlayer):
+        for (x,y) in state.board_iter(type=state.activePlayer):
             moves.append(Kill(x,y))
 
         return moves

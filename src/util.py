@@ -6,6 +6,9 @@ DEAD = CellType.DEAD
 PLAYER_1 = CellType.PLAYER_1
 PLAYER_2 = CellType.PLAYER_2
 
+def other(player: T.Union[CellType, int]) -> CellType:
+    return CellType((player % 2) + 1)
+
 # Converts a board to a binary board
 def to_binary(board: np.array) -> np.array:
     b = board.copy()

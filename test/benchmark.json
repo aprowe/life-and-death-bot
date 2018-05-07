@@ -1,6 +1,6 @@
 {
- "bot.getMoves(state) x10": 1.5641995019977912,
- "state.step() x200": 0.05050219298573211,
- "state.step(100) x20": 0.4255102039896883,
- "state.apply(moves[0]).apply(moves[1]).apply(moves[2]) x200": 0.16556817200034857
+ "bot.getMoves(state) x10": 0.1270007870043628,
+ "state.step() x200": 0.03467076399829239,
+ "state.step(100) x20": 0.3092091199941933,
+ "state.apply(moves[0]).apply(moves[1]).apply(moves[2]) x200": 0.1167299349908717
 }

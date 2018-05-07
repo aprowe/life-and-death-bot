@@ -121,28 +121,20 @@ class State(PDict):
 
     # Returns a cell count of all the cells on the board
     def cellCount(self) -> T.Dict[CellType, int]:
-        counts = {
-            CellType.DEAD: 0,
-            CellType.PLAYER_1: 0,
-            CellType.PLAYER_2: 0,
-        }
-
-        for coord, cell in self.board_iter():
-            counts[cell] += 1
-
-        return counts
+        return dict(
+            np.array(
+                np.unique(self.board, return_counts=True)
+            ).T.tolist()
+        )
 
     # Returns an iterator that gives
     # All the Cells positions and types
-    def board_iter(self, type=None) -> T.Iterator[T.Tuple[Coord, int]]:
-        for y, row in enumerate(self.board):
-            for x, cell in enumerate(row):
+    def board_iter(self, type=None, types=None) -> np.array:
+        if type is not None:
+            return np.argwhere(self.board.T == type)
 
-                # Add option for a filter
-                if type is not None and type != cell:
-                    continue
-
-                yield (x,y), cell
+        if types is not None:
+            return np.argwhere(np.isin(self.board.T, types))
 
     def __str__(self) -> str:
         return str(self.dict())

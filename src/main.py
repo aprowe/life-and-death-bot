@@ -4,7 +4,8 @@ from game import Game
 from state import State
 import numpy as np
 # from bot import Bot
-from minmaxbot import MinMaxBot as Bot
+# from minmaxbot import MinMaxBot as Bot
+from montebot import MonteBot as Bot
 from message_parser import serialize_action
 
 # Debug if specified
