@@ -29,19 +29,34 @@ class State(PDict):
         return State(PDict.using(self, *args, **kargs))
 
     # Step the game one normal game of life iteration
-    def step(self) -> 'State':
-        # Update Board
-        board = util.iterate(self.board)
+    def step(self, n=1) -> 'State':
+        if bool(self['winner']):
+            return self
 
-        # Increase round if needed (every other step)
-        round = self['round']
-        if self.activePlayer == 2:
-            round += 1
+        board = self.board
+
+        # Update Board n times
+        for i in range(n):
+            winner = util.check_win(board)
+            if bool(winner):
+                return self.using(
+                    winner=winner
+                )
+
+            board = util.iterate(board)
+
+        # set active player based on iteration count
+        activePlayer = self.nextPlayer if n % 2 == 1 else self.activePlayer
+
+        # # Increase round if needed (every other step)
+        # round = self['round']
+        # if self.activePlayer == 2:
+        #     round += 1
 
         return self.using(
             board=board,
-            activePlayer=self.nextPlayer,
-            round=round,
+            activePlayer=activePlayer,
+            # round=round,
         )
 
     # Kill a coordinate

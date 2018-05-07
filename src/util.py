@@ -165,3 +165,33 @@ def board_to_str(board: np.array) -> str:
 
 def print_board(board: np.array) -> None:
     print(board_to_str(board))
+
+# Printer class to print multi-colored terminal output
+class Printer:
+
+    colors = {
+        'header': '\033[1m\033[95m',
+        'blue': '\033[94m',
+        'green': '\033[92m',
+        'warning': '\033[93m',
+        'fail': '\033[91m',
+        'endc': '\033[0m',
+        'bold': '\033[1m',
+        'underline': '\033[4m',
+        'white': '',
+    }
+
+    def __call__(self, key, *args):
+        print(Printer.colors[key], *args, Printer.colors['endc'])
+
+    def __getattribute__(self, key):
+        if key[0:2] == '__':
+            return object.__getattribute__(self, key)
+
+        def fn(*args):
+            self.__call__(key, *args)
+
+        return fn
+
+# Make an object that can print
+cprint = Printer()
