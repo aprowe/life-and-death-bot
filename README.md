@@ -12,15 +12,67 @@ pipenv install
 ```
 
 
-## To Start
+### Commands
 ```
-python3 src/main.py
+./bin/run.sh
+./bin/test.sh
+./bin/benchmark.sh
+./bin/build.sh
+```
+##  TODO
+
+### Optimize and Benchmark
+Numpy needs to be utilized wherever possible to speed up everything
+A numpy method in place of a native python iterator over the board sped up
+the function call by **1000%**
+
+### Prune getMoves to not count useless actions:
+
+#### Ignore 'kill' actions where it's neighbors neighbor count is less than 3.
+
+for example, the one in the middle need not be explored to kill:
+
+Board:
+```
+0 1 0 0 1
+0 0 0 0 0
+0 0 1 0 0
+1 0 0 0 1
+0 0 0 0 0
 ```
 
-## Testing
+Neighbors:
 ```
-python3 test/run_tests.py
+1 0 1 1 0
+1 2 2 2 1
+1 2 0 2 1
+0 2 1 2 0
+1 1 0 1 1
 ```
 
-#### Update 5/2/18
-[It works!](https://starapple.riddles.io/competitions/game-of-life-and-death/my/bot-revisions/62ea1931-1285-4acb-a7a6-b394fcaf5af2/submission-logs)
+Since the cell only neighbors cells with a 2 max, it can have no effect on the board.
+
+Another Scenario:
+Board:
+```
+0 0 0 0 0
+0 0 0 0 1
+0 0 1 0 0
+0 0 0 0 1
+0 0 0 0 0
+```
+
+Neighbors:
+```
+0 0 0 1 1
+0 1 1 2 0
+0 1 0 3 2
+0 1 1 2 0
+0 0 0 1 1
+```
+
+Since this cell has max 3 on it's surrounding neighbors, it must be considered to be killed or not
+
+#### Birth Optimizing
+Likewise, cells that have max neighbor count of 2 do not need to be considered to birth to.
+Cells that are in these regions should be first picks for sacrificing.
