@@ -151,3 +151,42 @@ class UtilTest(unittest.TestCase):
             [1,0],
         ])
         self.assertEqual(util.check_win(board), 0)
+
+    def test_max_adjacent_neighbors(self):
+        board = np.array([
+            [0,1,0,0,1],
+            [0,0,0,0,0],
+            [0,0,1,0,0],
+            [1,0,0,0,1],
+            [0,0,0,0,0],
+        ])
+
+        target = np.array([
+            [2,2,2,2,2],
+            [2,2,2,2,2],
+            [2,2,2,2,2],
+            [2,2,2,2,2],
+            [2,2,2,2,2],
+        ])
+
+        output = util.max_adjacent_neighbors(board)
+        np.testing.assert_array_equal(output, target)
+
+        board = np.array([
+            [0,0,0,0,0],
+            [0,0,0,0,1],
+            [0,0,1,0,0],
+            [0,0,0,0,1],
+            [0,0,0,0,0],
+        ])
+
+        target = np.array([
+            [1,1,2,2,2],
+            [1,1,3,3,3],
+            [1,1,3,2,3],
+            [1,1,3,3,3],
+            [1,1,2,2,2],
+        ])
+
+        output = util.max_adjacent_neighbors(board)
+        np.testing.assert_array_equal(output, target)

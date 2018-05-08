@@ -26,10 +26,31 @@ def count_neighbors(mat : np.array) -> np.array:
 
     return N
 
+
 # Returns an array of coordinates where neightbors are in counts
 def neighbor_count_coords(board: np.array, counts: T.List) -> np.array:
     neighbors = count_neighbors(board)
     return np.argwhere(np.isin(neighbors, counts))
+
+# Returns the maximum of the neighbor count of adjacent cells
+# when these cells are 0, they can have no effect on the game
+def max_adjacent_neighbors(board: np.array) -> np.array:
+    B = count_neighbors(board)
+    B = np.pad(B, 1, 'constant')
+
+    # Contruct a stack of adjacent cells and take the max of them
+    N = np.array([
+        B[0:-2,0:-2],
+        B[0:-2,1:-1],
+        B[0:-2,2:],
+        B[1:-1,0:-2],
+        B[1:-1,2:],
+        B[2:  ,0:-2],
+        B[2:  ,1:-1],
+        B[2:  ,2:]
+    ])
+
+    return np.max(N, 0)
 
 # Gives the next step of a game of life
 def iterate(board: np.array) -> np.array:
