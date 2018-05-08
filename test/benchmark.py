@@ -9,25 +9,20 @@ to benchmark.json to see if anythin has improved or gotten better
 import unittest
 import timeit
 import json
+import numpy as np
 
 from bot import Bot
+from montebot import MonteBot
 from game import Game
 import types_
 from util import cprint
-
-# Code that will run before each benchmar
-SETUP_CODE = """
-from benchmark import vars
-moves = vars['moves']
-state = vars['state']
-bot = vars['bot']
-"""
 
 # Globals to be imported into each benchmark
 vars = {
     'moves': [],
     'state': None,
-    'bot' : None
+    'bot' : None,
+    'montebot' : None,
 }
 
 # Summary and goals dictionaries to
@@ -53,6 +48,7 @@ class BenchmarkTest(unittest.TestCase):
     def setUp(self):
         # Load and reset game
         self.game = Game.fromGameFile('test_game.txt')
+        vars['state'] = self.game.state
 
     # Once tests are done, print output
     def tearDownClass():
@@ -60,12 +56,18 @@ class BenchmarkTest(unittest.TestCase):
         print("(new/goal)")
 
         for key, val in summary.items():
+            time, number, per, repeat = val
+            per *= 1000
+
             # Print which function call this is
-            print(key)
+            print(f'{key} [x{number}]')
 
             # Set color according to how well it did
             if key in goals:
-                err = (val - goals[key]) / val
+                gtime, gnumber, gper, grepeat = goals[key]
+                gper *= 1000
+
+                err = (per - gper) / gper
                 if -0.1 < err < 0.1:
                     color = 'blue'
                 elif 0.1 < err < 0.50:
@@ -76,34 +78,44 @@ class BenchmarkTest(unittest.TestCase):
                     color = 'green'
 
                 # Color print the result
-                cprint(color, f'{round(val, 2)}/{round(goals[key],2)}, {round(err*100, 1)}%')
+                cprint(color, f'{round(per, 3)}/{round(gper,3)} ms, {round(err*100, 1)}%')
             else:
-                cprint.blue(f'(new) {round(val, 2)}')
+                cprint.blue(f'(new) {round(per, 3)}ms')
 
         ## Save output to a json file
         with open('benchmark-summary.json', 'w') as f:
             json.dump(summary, f, indent=True)
 
     # Helper function to wrap timing function around common variables
-    def benchmark(self, code, number=1000, tol = 0.15):
-        time = min(timeit.repeat(code, SETUP_CODE, number=number, repeat=10))
+    def benchmark(self, code, number=1000, repeat=5, tol = 0.25):
+        # Create setup code from vars
+        setup_code = 'from benchmark import vars\n'
+        setup_code += '\n'.join(f"{key} = vars['{key}']" for key in vars)
+
+        time = min(timeit.repeat(code, setup_code, number=number, repeat=repeat))
 
         # Set a key for the entry
-        key = code + f' x{number}'
+        key = code
 
         # Add it to the summary
-        summary[key] = time
+        summary[key] = [
+            time,
+            number,
+            time / number,
+            repeat
+        ]
 
+        # Ensure it is perming equal or better
         if key in goals:
-            # Ensure it is perming equal or better
-            self.assertLessEqual(time, goals[key] * (1 + tol))
+            gper = goals[key][2]
+            per = summary[key][2]
+            err = (per - gper) / gper
+            self.assertLessEqual(err, tol)
 
     def test_state(self):
-        vars['state'] = self.game.state
-
         ## Step(n)
-        self.benchmark('state.step()', number=200)
-        self.benchmark('state.step(100)', number=20)
+        self.benchmark('state.step()', number=2000)
+        self.benchmark('state.step(100)', number=40)
 
         vars['moves'] = [
             types_.Kill(0,1),
@@ -112,11 +124,23 @@ class BenchmarkTest(unittest.TestCase):
         ]
 
         ## Apply(n)
-        self.benchmark('state.apply(moves[0]).apply(moves[1]).apply(moves[2])', 200)
+        self.benchmark('state.apply(moves[0]).apply(moves[1]).apply(moves[2])', 1000)
 
     def test_bot(self):
         bot = Bot(self.game)
-        vars['state'] = self.game.state
         vars['bot'] = bot
 
-        self.benchmark('bot.getMoves(state)', 10)
+        self.benchmark('bot.getMoves(state)', 50)
+
+    def test_monte_bot(self):
+        bot = MonteBot(self.game, options=dict(
+            max_depth=3,
+            playout_length=100,
+            max_count=100,
+            min_win_rate=0.0,
+            early_exit_thresh=0.37,
+        ))
+
+        vars['montebot'] = bot
+
+        self.benchmark('montebot.findBestMove()', 1, repeat=3)

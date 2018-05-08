@@ -5,7 +5,7 @@ from random import shuffle
 import util
 from bot import Bot
 from game import Game, State
-from heuristics import SIMPLE
+from heuristics import squaredScore
 
 class Node():
 
@@ -60,9 +60,9 @@ class Node():
         if state['winner'] == self.player:
             self.add_score(1)
         elif state['winner'] == util.other(self.player):
-            self.add_score(-1)
-        else:
             self.add_score(0)
+        else:
+            self.add_score(0.01)
 
     # Add score, up the tree
     def add_score(self, amt=1) -> None:
@@ -83,7 +83,7 @@ class Node():
             n.change_depth(depth + 1)
 
     # This is where the magic happens
-    def search_tree(self, playout_length=100, max_depth=2, max_count=10, min_win_rate=0.5, early_exit_thresh=0.37):
+    def search_tree(self, playout_length, max_depth, max_count, min_win_rate, early_exit_thresh=0.37):
         # capture locals to pass to recurse
         args = locals()
         del args['self']
@@ -175,9 +175,18 @@ class Node():
 
 # Class to Handle higher level functionality of game analysis
 class MonteBot(Bot):
-    def __init__(self, game: Game, heuristic: T.Callable = SIMPLE) -> None:
+    def __init__(self, game: Game, options = {}) -> None:
         super().__init__(game)
-        self.player = None
+
+        # Set Default OPtions
+        self.options = {
+            'playout_length': 20,
+            'max_depth': 3,
+            'max_count': 100,
+            'min_win_rate': 0.5,
+            'early_exit_thresh': 0.37,
+            **options
+        }
 
     def findBestMove(self):
         state = self.game.state
@@ -185,11 +194,6 @@ class MonteBot(Bot):
 
         # Create Root Node
         root = Node(state, player=player)
-        root.search_tree(
-            playout_length=20,
-            max_depth=3,
-            max_count=100,
-            min_win_rate=0.0
-        )
+        root.search_tree(**self.options)
 
         return root.best_move
