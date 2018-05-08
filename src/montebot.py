@@ -5,7 +5,7 @@ from random import shuffle
 import util
 from bot import Bot
 from game import Game, State
-from heuristics import squaredScore
+from heuristics import squaredScore, getMoves
 
 class Node():
 
@@ -39,7 +39,9 @@ class Node():
         if len(self._children) > 0:
             return self.children
 
-        moves = Bot.getMoves(self.state)
+        # TODO
+        # make getMoves a more heuristic function that can be changed
+        moves = getMoves(self.state)
         for m in moves:
             newState = self.state.apply(m)
             c = Node(newState, self)

@@ -1,5 +1,6 @@
 import numpy as np
 import typing as T
+import random
 from types_ import CellType, Coord, ActionType, Action, Kill, Birth
 
 DEAD = CellType.DEAD
@@ -26,11 +27,15 @@ def count_neighbors(mat : np.array) -> np.array:
 
     return N
 
-
 # Returns an array of coordinates where neightbors are in counts
 def neighbor_count_coords(board: np.array, counts: T.List) -> np.array:
     neighbors = count_neighbors(board)
     return np.argwhere(np.isin(neighbors, counts))
+
+# Returns  coordinates of where values are in arrays
+# Returns (X Y)
+def where_isin(board: np.array, counts: T.List) -> np.array:
+    return np.argwhere(np.isin(board.T, counts))
 
 # Returns the maximum of the neighbor count of adjacent cells
 # when these cells are 0, they can have no effect on the game
@@ -156,6 +161,13 @@ def check_win(board: np.array) -> int:
 
     return 0
 
+def random_cell(board, num=1, type=None) -> T.List[T.Tuple[int,int]]:
+    cells = [(x,y) for y, x in np.argwhere(board == type)]
+    random.shuffle(cells)
+
+    return cells[:num]
+
+
 # Adds coordinates to an action,
 # This for when a board is converted into smaller boards, an action is
 # chosen, and it's coordinates need to be re-normalized to the full board.
@@ -181,55 +193,36 @@ def add_coords_to_action(coord: Coord, action:Action) -> Action:
 
     raise Exception(f"Unknown Action Type: {action[0]}")
 
-## VT100 control codes
-CURSOR_UP_ONE = '\x1b[1A'
-ERASE_LINE = '\x1b[2K'
-P1_CHAR = 'x'
-P2_CHAR = 'o'
-DEAD_CHAR = '.'
-
-CHARS = {
-    DEAD: DEAD_CHAR,
-    PLAYER_1: P1_CHAR,
-    PLAYER_2: P2_CHAR,
-}
-
-# Prints out a board
-def board_to_str(board: np.array) -> str:
-    output = []
-
-    output.append('-----------------\n')
-    for row in board:
-        for cell in row:
-            output.append(CHARS[cell] + ' ')
-        output.append('\n')
-
-    return ''.join(output)
-
-
-def print_board(board: np.array) -> None:
-    print(board_to_str(board))
-
 # Printer class to print multi-colored terminal output
 class Printer:
 
     colors = {
         'header': '\033[1m\033[95m',
+        'purple': '\033[95m',
         'blue': '\033[94m',
         'green': '\033[92m',
         'warning': '\033[93m',
+        'yellow': '\033[93m',
         'fail': '\033[91m',
+        'red': '\033[91m',
         'endc': '\033[0m',
         'bold': '\033[1m',
         'underline': '\033[4m',
         'white': '',
     }
 
-    def __call__(self, key, *args):
-        print(Printer.colors[key], *args, Printer.colors['endc'])
+    def __call__(self, key: str, *args) -> None:
+        print(self.str(key, *args))
+
+    def str(self, color, *args) -> str:
+        return ''.join([
+            Printer.colors[color],
+            *args,
+            Printer.colors['endc']
+        ])
 
     def __getattribute__(self, key):
-        if key[0:2] == '__':
+        if key[0:2] == '__' or key == 'str':
             return object.__getattribute__(self, key)
 
         def fn(*args):
@@ -239,3 +232,57 @@ class Printer:
 
 # Make an object that can print
 cprint = Printer()
+
+## VT100 control codes
+CURSOR_UP_ONE = '\x1b[1A'
+ERASE_LINE = '\x1b[2K'
+P1_CHAR = '1'
+P2_CHAR = '2'
+DEAD_CHAR = '.'
+
+CHARS = {
+    DEAD: DEAD_CHAR,
+    PLAYER_1: P1_CHAR,
+    PLAYER_2: P2_CHAR,
+}
+
+# Prints out a board
+def board_to_str(board: np.array, last_move:Action = None) -> str:
+    output = []
+
+    x = y = -1
+    if last_move is not None and last_move[0] == ActionType.KILL:
+        x, y = last_move[1]
+
+    tx = ty = -1
+    bx = by = -1
+    bx2 = by2 = -1
+    if last_move is not None and last_move[0] == ActionType.BIRTH:
+        tx, ty = last_move[1]
+        bx, by = last_move[2]
+        bx2, by2 = last_move[3]
+
+    output.append('-----------------\n')
+    for i, row in enumerate(board):
+        for j, cell in enumerate(row):
+            if (i, j) in zip([y, by, by2], [x,bx,bx2]):
+                color = 'red'
+            elif i == ty and j == tx:
+                color = 'green'
+            elif cell == 1:
+                color = 'purple'
+            elif cell == 2:
+                color = 'yellow'
+            else:
+                color = 'white'
+
+            output.append(cprint.str(color, CHARS[cell] + ' '))
+
+
+        output.append('\n')
+
+    return ''.join(output)
+
+
+def print_board(board: np.array) -> None:
+    print(board_to_str(board))

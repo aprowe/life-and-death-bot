@@ -13,6 +13,7 @@ import numpy as np
 
 from bot import Bot
 from montebot import MonteBot
+import heuristics
 from game import Game
 import types_
 from util import cprint
@@ -49,6 +50,7 @@ class BenchmarkTest(unittest.TestCase):
         # Load and reset game
         self.game = Game.fromGameFile('test_game.txt')
         vars['state'] = self.game.state
+        vars['heuristics'] = heuristics
 
     # Once tests are done, print output
     def tearDownClass():
@@ -131,6 +133,9 @@ class BenchmarkTest(unittest.TestCase):
         vars['bot'] = bot
 
         self.benchmark('bot.getMoves(state)', 50)
+
+    def test_heuristics(self):
+        self.benchmark('heuristics.getMoves(state)', 50)
 
     def test_monte_bot(self):
         bot = MonteBot(self.game, options=dict(

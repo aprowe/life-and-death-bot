@@ -190,3 +190,25 @@ class UtilTest(unittest.TestCase):
 
         output = util.max_adjacent_neighbors(board)
         np.testing.assert_array_equal(output, target)
+
+    def test_where_isin(self):
+        board = np.array([
+            [1,1,0,0],
+            [0,2,2,0],
+        ])
+
+        np.testing.assert_array_equal(
+            util.where_isin(board, [1]),
+            [[0,0], [1,0]]
+        )
+
+    def test_random_cell(self):
+        board = np.array([
+            [0,1,0,0],
+            [0,2,2,0],
+        ])
+
+        np.testing.assert_array_equal(
+            util.random_cell(board, 1, 1),
+            [(1,0)]
+        )

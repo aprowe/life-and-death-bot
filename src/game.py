@@ -20,6 +20,9 @@ class Game():
         # Game Settings
         self.settings : T.Dict[str, T.Any] = dict()
 
+        self.last_move: Action = None
+        self.last_state: State = state
+
     # Loads a game from a text file
     @staticmethod
     def fromGameFile(file) -> 'Game':
@@ -29,7 +32,7 @@ class Game():
 
     # Steps to the next iteration of the game state
     def step(self) -> None:
-        self.state = self.state.step()
+        self.action((ActionType.PASS,))
 
     # Reads a line and updates state
     def readLine(self, line: str) -> None:
@@ -65,6 +68,8 @@ class Game():
 
     # Applies an action to the game state
     def action(self, action: Action) -> None:
+        self.last_move = action
+        self.last_state = self.state
         self.state = self.state.apply(action)
 
     # Handle a command from the message_parser to update state
@@ -100,7 +105,7 @@ class Game():
         for p, n in self.state.cellCount().items():
             retVal += f"Living {p}: {n}\n"
 
-        retVal += util.board_to_str(self.state.board)
+        retVal += util.board_to_str(self.last_state.board, self.last_move)
         return retVal
 
     def display(self) -> None:
