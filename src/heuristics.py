@@ -7,6 +7,7 @@ from types_ import CellType, Kill, Birth, Pass, Action
 
 from state import State
 import util
+from util import other
 
 # Signature for a heuristic Fn
 HeuristicFn = T.Callable[[State, CellType], float]
@@ -14,26 +15,29 @@ HeuristicFn = T.Callable[[State, CellType], float]
 # Signature for a 'get-moves fn'
 MovesFn = T.Callable[[State], T.List[Action]]
 
-def opponent(player: CellType) -> CellType:
-    return CellType((player % 2) + 1)
+class ScoreState:
 
-def simpleScoreState(state:State, player:CellType) -> float:
-    counts = state.cellCount()
-    return counts[player] - counts[opponent(player)]
+    @staticmethod
+    def simple(state:State, player:CellType) -> float:
+        counts = state.cellCount()
+        return counts[player] - counts[other(player)]
 
-def squaredScore(state:State, player:CellType) -> float:
-    if state['winner'] == player:
-        return np.inf
-    elif state['winner'] == opponent(player):
-        return -np.inf
+    @staticmethod
+    def squared(state:State, player:CellType) -> float:
+        if state['winner'] == player:
+            return np.inf
+        elif state['winner'] == other(player):
+            return -np.inf
 
-    counts = state.cellCount()
-    return counts[player] ** 2 - counts[opponent(player)] ** 2
+        counts = state.cellCount()
+        return counts[player] ** 2 - counts[other(player)] ** 2
 
-SIMPLE  = simpleScoreState
-SQUARED = squaredScore
+    @staticmethod
+    def zero(state: State, player:CellType) -> float:
+        return 0
 
-def getMoves(state: State) -> T.List[Action]:
+# Gets Moves in a smart order
+def ordered_moves(state: State) -> T.List[Action]:
     moves: T.List[Action] = [
         Pass()
     ]

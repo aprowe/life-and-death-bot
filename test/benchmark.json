@@ -5,7 +5,7 @@
   0.01312604607999674,
   5
  ],
- "heuristics.getMoves(state)": [
+ "heuristics.ordered_moves(state)": [
   0.48095403400111536,
   50,
   0.009619080680022308,

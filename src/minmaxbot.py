@@ -5,11 +5,11 @@ from state import State
 from game import Game
 from types_ import Action, CellType
 import numpy as np
-from heuristics import SIMPLE
+from heuristics import ScoreState
 
 # Class to Handle higher level functionality of game analysis
 class MinMaxBot(Bot):
-    def __init__(self, game: Game, heuristic: T.Callable = SIMPLE,
+    def __init__(self, game: Game, heuristic: T.Callable = ScoreState.simple,
     lookahead: int=2) -> None:
         super().__init__(game)
         self.lookahead = lookahead

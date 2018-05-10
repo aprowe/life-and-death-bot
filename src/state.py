@@ -121,11 +121,19 @@ class State(PDict):
 
     # Returns a cell count of all the cells on the board
     def cellCount(self) -> T.Dict[CellType, int]:
-        return dict(
-            np.array(
-                np.unique(self.board, return_counts=True)
-            ).T.tolist()
-        )
+        return {
+            # Ensure these are here even if they are 0
+            CellType.PLAYER_1: 0,
+            CellType.PLAYER_2: 0,
+            CellType.DEAD: 0,
+
+            # Combine with the action counts
+            **dict(
+                np.array(
+                    np.unique(self.board, return_counts=True)
+                ).T.tolist()
+            )
+        }
 
     # Returns an iterator that gives
     # All the Cells positions and types

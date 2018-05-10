@@ -135,14 +135,14 @@ class BenchmarkTest(unittest.TestCase):
         self.benchmark('bot.getMoves(state)', 50)
 
     def test_heuristics(self):
-        self.benchmark('heuristics.getMoves(state)', 50)
+        self.benchmark('heuristics.ordered_moves(state)', 50)
 
     def test_monte_bot(self):
         bot = MonteBot(self.game, options=dict(
-            max_depth=3,
+            max_depth=2,
             playout_length=100,
             max_count=100,
-            min_win_rate=0.0,
+            min_win_rate=0.5,
             early_exit_thresh=0.37,
         ))
 

@@ -5,12 +5,16 @@ from random import shuffle
 import util
 from bot import Bot
 from game import Game, State
-from heuristics import squaredScore, getMoves
+from heuristics import ScoreState, ordered_moves, HeuristicFn
 
 class Node():
 
-    def __init__(self, state: State, parent: 'Node' = None, player: int = None) -> None:
-        self.score = 0
+    def __init__(self,
+        state: State,
+        parent: 'Node' = None,
+        player: int = None,
+        heuristic: HeuristicFn = ScoreState.zero) -> None:
+
         self.count = 0
         self._children : T.List[Node] = []
         self.parent : Node = parent
@@ -20,16 +24,21 @@ class Node():
         # Set player to parent's player
         if parent is not None:
             self.player: int = self.parent.player
-            self.depth = self.parent.depth + 1
+            self.depth: int = self.parent.depth + 1
+            self.heuristic: HeuristicFn = self.parent.heuristic
 
         # If root, set player
         else:
             self.depth = 0
             self.player = player
+            self.heuristic = heuristic
 
             # Make sure not has a playr
             if self.player is None:
                 raise Exception("Player is not set on node")
+
+        ## Calculate score, for sorting
+        self.score = self.heuristic(state, self.player)
 
     def child_scores(self):
         return [c.score for c in self.children]
@@ -40,8 +49,8 @@ class Node():
             return self.children
 
         # TODO
-        # make getMoves a more heuristic function that can be changed
-        moves = getMoves(self.state)
+        # make ordered_moves a more heuristic function that can be changed
+        moves = ordered_moves(self.state)
         for m in moves:
             newState = self.state.apply(m)
             c = Node(newState, self)
@@ -195,7 +204,7 @@ class MonteBot(Bot):
         player = state.activePlayer
 
         # Create Root Node
-        root = Node(state, player=player)
+        root = Node(state, player=player, heuristic=ScoreState.simple)
         root.search_tree(**self.options)
 
         return root.best_move
