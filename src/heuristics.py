@@ -33,6 +33,18 @@ class ScoreState:
         return counts[player] ** 2 - counts[other(player)] ** 2
 
     @staticmethod
+    def ratio(state: State, player: CellType) -> float:
+        counts = state.cellCount()
+        
+        if counts[other(player)] == 0:
+            return 1
+        if counts[player] == 0:
+            return 0
+
+        return counts[player] / (counts[other(player)] + counts[player])
+
+
+    @staticmethod
     def zero(state: State, player:CellType) -> float:
         return 0
 
@@ -62,7 +74,7 @@ def ordered_moves(state: State) -> T.List[Action]:
     for (x,y) in util.where_isin(opp_adj_mat, [3,4,5]):
         kills.append(Kill(x,y))
 
-    shuffle(kills)
+    # shuffle(kills)
     moves.extend(kills)
 
     # Add Births
@@ -75,7 +87,7 @@ def ordered_moves(state: State) -> T.List[Action]:
             break
 
         births.append(Birth((x,y), *cells))
-    shuffle(births)
+    # shuffle(births)
     moves.extend(births)
 
     # Add Friendly Kills
@@ -83,7 +95,7 @@ def ordered_moves(state: State) -> T.List[Action]:
     for (x,y) in util.where_isin(own_adj_mat, [0,1,2]):
         kills.append(Kill(x,y))
 
-    shuffle(kills)
+    # shuffle(kills)
     moves.extend(kills)
 
     return moves

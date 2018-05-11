@@ -19,9 +19,19 @@ class MonteBotTest(unittest.TestCase):
         root = Node(state, player=1)
         root.search_tree(playout_length=20, max_depth=3, max_count=100, min_win_rate=0.4)
 
-        print('\n', root)
-        print('\n', root.best)
+    def test_iterate(self):
+        state = State({'board': np.array([
+            [0, 1, 0],
+            [1, 0, 1],
+            [0, 1, 0],
+            [2, 0, 2],
+            [0, 2, 0],
+        ])})
 
+        root = Node(state, player=1)
+
+        [root.iterate(playout_length=20) for i in range(50)]
+        print('\n', root)
 
     def test_scenarios(self):
         state = State({

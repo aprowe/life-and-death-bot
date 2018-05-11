@@ -12,7 +12,7 @@ import json
 import numpy as np
 
 from bot import Bot
-from montebot import MonteBot
+from montebot import MonteBot, Node
 import heuristics
 from game import Game
 import types_
@@ -137,15 +137,7 @@ class BenchmarkTest(unittest.TestCase):
     def test_heuristics(self):
         self.benchmark('heuristics.ordered_moves(state)', 50)
 
-    def test_monte_bot(self):
-        bot = MonteBot(self.game, options=dict(
-            max_depth=2,
-            playout_length=100,
-            max_count=100,
-            min_win_rate=0.5,
-            early_exit_thresh=0.37,
-        ))
+    def test_monte_node(self):
+        vars['root'] = Node(state=self.game.state, player=1)
 
-        vars['montebot'] = bot
-
-        self.benchmark('montebot.findBestMove()', 1, repeat=3)
+        self.benchmark('root.iterate_repeat(100,100)', 1, repeat=3)
