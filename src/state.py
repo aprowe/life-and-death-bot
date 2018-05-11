@@ -30,7 +30,7 @@ class State(PDict):
         return State(PDict.using(self, *args, **kargs))
 
     # Step the game one normal game of life iteration
-    def step(self, n=1) -> 'State':
+    def step(self, n=1, random=False) -> 'State':
         if bool(self['winner']):
             return self
 
@@ -43,6 +43,9 @@ class State(PDict):
                 return self.using(
                     winner=winner
                 )
+
+            if random:
+                board = util.random_move(board)
 
             board = util.iterate(board)
 
@@ -63,6 +66,10 @@ class State(PDict):
     # Kill a coordinate
     def kill(self, x:int, y:int) -> 'State':
         board = self.board.copy()
+
+        if board[y,x] == 0:
+            raise InvalidPlayException('Cannot kill a dead cell')
+
         board[y,x] = 0
         return self.using(board=board)
 

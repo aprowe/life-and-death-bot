@@ -97,6 +97,23 @@ def iterate(board: np.array) -> np.array:
     retVal[survive] = board[survive]
     return retVal
 
+def random_move(board: np.array) -> np.array:
+    board = board.copy()
+    rand = np.random.rand(*board.shape)
+
+    birth_freq = 0.33
+    kill_freq = 1.0
+    weight = 1 / (board.shape[0] * board.shape[1])
+
+    kill_freq  += birth_freq
+    kill_freq  *= weight
+    birth_freq *= weight
+
+    board[rand < kill_freq]  = 0
+    board[rand < birth_freq] = int(random.uniform(0,2))
+
+    return board
+
 # Pads a shape and enters -1 where there are cells that don't matter
 def pad_shape(mat: np.array) -> np.array:
     mat = np.pad(mat, 1, 'constant')

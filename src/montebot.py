@@ -1,4 +1,5 @@
 import numpy as np
+import time
 import typing as T
 from random import shuffle
 
@@ -13,7 +14,9 @@ class Node():
         state: State,
         parent: 'Node' = None,
         player: int = None,
-        heuristic: HeuristicFn = ScoreState.zero) -> None:
+        heuristic: HeuristicFn = ScoreState.zero,
+        explore_param: float = 0.2
+        ) -> None:
 
         self.count = 0
         self.children : T.List[Node] = []
@@ -26,12 +29,14 @@ class Node():
             self.player: int = self.parent.player
             self.depth: int = self.parent.depth + 1
             self.heuristic: HeuristicFn = self.parent.heuristic
+            self.explore_param = self.parent.explore_param
 
         # If root, set player
         else:
             self.depth = 0
             self.player = player
             self.heuristic = heuristic
+            self.explore_param = explore_param
 
             # Make sure not has a playr
             if self.player is None:
@@ -70,23 +75,29 @@ class Node():
         ]
 
     # Playout the game
-    def playout(self, n=100) -> None:
-        state = self.state.step(n)
+    def playout(self, n=100, reps=1) -> None:
+        for i in range(reps):
+            state = self.state.step(n, random=True)
 
-        if state['winner'] == self.player:
-            self.add_score(1)
-        elif state['winner'] == util.other(self.player):
-            self.add_score(0)
-        else:
-            self.add_score(0.00)
+            if state['winner'] == self.player:
+                self.add_score(1)
+            elif state['winner'] == util.other(self.player):
+                self.add_score(0)
+            else:
+                self.add_score(0)
 
     # Add score, up the tree
     def add_score(self, amt=1) -> None:
-        self.score += amt
         self.count += 1
 
+        # Just add to count for ties
+        if amt is None:
+            self.parent.add_score(None)
+
+        self.score += amt
+
         if self.parent is not None:
-            self.parent.add_score(amt)
+            self.parent.add_score(1 - amt)
 
     # Change the Nodes depth so it can be re-used next round as a root
     def change_depth(self, depth):
@@ -102,25 +113,28 @@ class Node():
         w = child.score
         n = child.count
         N = self.count
-        c = 0.8
+        c = self.explore_param
 
         n = max(n, 1)
         N = max(N, 1)
 
         return w / n + c * np.sqrt(np.log(N) / n)
 
-    def iterate(self, playout_length):
+    def iterate(self, playout_length:int, playout_reps:int = 1, max_depth:int = 100) -> None:
         if self.is_leaf:
             # if itself hasn't been played out, play it out!
             if self.count == 0:
-                self.playout(playout_length)
+                self.playout(playout_length, playout_reps)
 
-            self.explore()
-            # self.playout_children(playout_length, 3)
+            if self.depth <= max_depth:
+                self.explore()
+            else:
+                self.playout(playout_length, playout_reps)
+
             return
 
         next_child = max(self.children, key=self.calc_priority)
-        next_child.iterate(playout_length)
+        next_child.iterate(playout_length, playout_reps, max_depth)
 
     def iterate_repeat(self, playout_length, iterations):
         for i in range(iterations):
@@ -218,25 +232,45 @@ class Node():
 class MonteBot(Bot):
     def __init__(self, game: Game, options = {}) -> None:
         super().__init__(game)
+        self.root = None
 
         # Set Default OPtions
         self.options = {
-            'playout_length': 50,
-            'max_depth': 3,
-            'max_count': 100,
-            'min_win_rate': 0.5,
-            'early_exit_thresh': 0.37,
+            'playout_length': 100,
+            'playout_reps': 3,
+            'max_depth': 6,
+            'explore_param': 0.2,
             **options
         }
 
-    def findBestMove(self, iterations=1000):
+    def findBestMove(self, iterations=None, max_time=None):
         state = self.game.state
+
         player = state.activePlayer
 
-        # Create Root Node
-        root = Node(state, player=player, heuristic=ScoreState.ratio)
-        for i in range(iterations):
-            root.iterate(self.options['playout_length'])
+        # Limits
+        start_time = time.time()
+        i = 0
 
-        print(root)
+        # Create Root Node
+        root = Node(state,
+            player=player,
+            heuristic=ScoreState.zero,
+            explore_param=self.options['explore_param'],
+        )
+        while True:
+            if iterations is not None and i > iterations:
+                break
+
+            if max_time is not None and time.time() - start_time > max_time:
+                break
+
+            root.iterate(
+                self.options['playout_length'],
+                self.options['playout_reps'],
+                self.options['max_depth'],
+            )
+            i += 1
+
+        self.root = root
         return root.best_move

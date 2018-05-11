@@ -212,3 +212,14 @@ class UtilTest(unittest.TestCase):
             util.random_cell(board, 1, 1),
             [(1,0)]
         )
+
+    def test_random_move(self):
+        board = np.array([
+            [0,0,0,0],
+            [0,0,0,0],
+            [1,1,2,2],
+            [1,1,2,2],
+        ])
+
+        b = util.random_move(board)
+        print('\n', b)

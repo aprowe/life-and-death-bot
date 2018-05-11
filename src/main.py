@@ -27,8 +27,14 @@ def main() -> None:
         # })
         game.readGameFile('test/game2.txt')
 
+
     # Create our bot, with access to all the game state
-    bot = Bot(game)
+    bot = Bot(game, options={
+        'explore_param': 1,
+        'max_depth': 6,
+        'playout_length': 100,
+        'playout_reps': 3,
+    })
 
     print(game)
 
@@ -39,7 +45,7 @@ def main() -> None:
 
         if DEBUG:
             if input_msg == 'a\n':
-                move = bot.findBestMove()
+                move = bot.findBestMove(max_time=1)
                 print('move', move)
                 game.action(move)
 

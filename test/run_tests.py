@@ -12,7 +12,7 @@ from util_test import *
 from monte_test import *
 from heuristic_test import *
 
-if 'BenchmarkTest' in sys.argv:
+if 'BenchmarkTest' in ''.join(sys.argv):
     from benchmark import *
 
 unittest.main()

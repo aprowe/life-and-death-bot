@@ -4,6 +4,7 @@ from state import State
 from game import Game
 from montebot import MonteBot, Node
 from types_ import Kill
+from util import cprint
 
 class MonteBotTest(unittest.TestCase):
 
@@ -52,3 +53,12 @@ class MonteBotTest(unittest.TestCase):
             Kill(2,3),
             Kill(2,4),
         ])
+
+
+    def test_monte_max_time(self):
+        bot = MonteBot(Game.fromGameFile('test_game.txt'))
+        time = 10
+
+        bot.findBestMove(max_time=time)
+        cprint.yellow(f'\nMonte Bot: {time} seconds, {bot.root.count} iterations')
+        print(bot.root)

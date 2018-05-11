@@ -1,11 +1,11 @@
 run:
-	python3 src/main.py -d
+	python3 src/main.py -d ${ARGS}
 
 test:
-	cd test && python3 run_tests.py --verbose
+	cd test && python3 run_tests.py --verbose ${ARGS}
 
 benchmark:
-	cd test && python3 run_tests.py BenchmarkTest --verbose
+	cd test && python3 run_tests.py BenchmarkTest --verbose ${ARGS}
 
 save-benchmark:
 	mv test/benchmark-summary.json test/benchmark.json
