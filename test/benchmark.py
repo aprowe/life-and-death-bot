@@ -17,6 +17,7 @@ import heuristics
 from game import Game
 import types_
 from util import cprint
+import util
 
 # Globals to be imported into each benchmark
 vars = {
@@ -51,6 +52,7 @@ class BenchmarkTest(unittest.TestCase):
         self.game = Game.fromGameFile('test_game.txt')
         vars['state'] = self.game.state
         vars['heuristics'] = heuristics
+        vars['util'] = util
 
     # Once tests are done, print output
     def tearDownClass():
@@ -136,6 +138,12 @@ class BenchmarkTest(unittest.TestCase):
 
     def test_heuristics(self):
         self.benchmark('heuristics.ordered_moves(state)', 50)
+
+    def test_check_win(self):
+        self.benchmark('util.check_win(state)', 5000)
+
+    def test_iterate(self):
+        self.benchmark('util.iterate(state.board)', 5000)
 
     def test_monte_node(self):
         vars['root'] = Node(state=self.game.state, player=1)

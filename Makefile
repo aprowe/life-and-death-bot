@@ -15,5 +15,7 @@ zip:
 	open https://starapple.riddles.io/competitions/game-of-life-and-death
 
 profile:
+	cd test && python3 profiler.py
+	snakeviz profile
 
 .PHONY: run test benchmark save-benchmark zip profile

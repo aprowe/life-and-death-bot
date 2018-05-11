@@ -149,15 +149,11 @@ def get_subboards(board : np.array, size : int, offset=None) -> np.array:
 # Checks for win, returns the player that won
 # Returns 0 if no win
 def check_win(board: np.array) -> int:
-    uniques = np.unique(board)
-    if CellType.PLAYER_1 in uniques and CellType.PLAYER_2 in uniques:
-        return 0
-
-    if CellType.PLAYER_1 in uniques:
-        return CellType.PLAYER_1
-
-    if CellType.PLAYER_2 in uniques:
-        return CellType.PLAYER_2
+    if not np.any(board == 1):
+        return 2
+        
+    if not np.any(board == 2):
+        return 1
 
     return 0
 
