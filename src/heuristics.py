@@ -62,8 +62,8 @@ def ordered_moves(state: State) -> T.List[Action]:
     # 3,4,5 will denote the most 'important' cells
     # A cell with a '0' will have no influence on the board
     adj_mat = util.max_adjacent_neighbors(board)
-    own_adj_mat = ma.masked_array(adj_mat, board != player).filled(0)
-    opp_adj_mat = ma.masked_array(adj_mat, board != opponent).filled(0)
+    own_adj_mat = ma.masked_array(adj_mat, board != player).filled(-1)
+    opp_adj_mat = ma.masked_array(adj_mat, board != opponent).filled(-1)
 
     # get Neighbor Mats
     neighbors = util.count_neighbors(board)

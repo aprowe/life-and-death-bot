@@ -122,8 +122,8 @@ class BenchmarkTest(unittest.TestCase):
         self.benchmark('state.step(100)', number=40)
 
         vars['moves'] = [
-            types_.Kill(0,1),
-            types_.Birth((0,0), (0,3), (0,4)),
+            types_.Kill(0,3),
+            types_.Birth((0,0), (4,3), (5,3)),
             types_.Pass()
         ]
 

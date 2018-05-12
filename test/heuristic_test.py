@@ -17,3 +17,10 @@ class HeuristicsTest(unittest.TestCase):
                 [1,0,0,2,2],
             ])
         })
+
+        moves = ordered_moves(state)
+        
+        for move in moves:
+            state.apply(move)
+            
+
