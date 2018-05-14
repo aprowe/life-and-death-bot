@@ -61,8 +61,8 @@ def update_cmd(args) -> T.Tuple[str, str, T.Any]:
     return (type, value, player)
 
 # parse an 'Action' command
-def action_cmd(args: T.List[str]) -> T.Tuple[str, int]:
-    return (args[0], int(args[1]))
+def action_cmd(args: T.List[str]) -> int:
+    return int(args[1])
 
 # Class to generate message that will eventaually go to stdout,
 # Adhering to the riddles.io API

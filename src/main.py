@@ -31,10 +31,10 @@ def main() -> None:
 
     # Create our bot, with access to all the game state
     bot = Bot(game, options={
-        'explore_param': 1,
+        'explore_param': 0.8,
         'max_depth': 6,
-        'playout_length': 100,
-        'playout_reps': 3,
+        'playout_length': 50,
+        'playout_reps': 1,
     })
 
     print(game)
@@ -42,11 +42,12 @@ def main() -> None:
     # Read commands
     for input_msg in sys.stdin:
         # Read the line into the game
-        game.readLine(input_msg)
+        cmd, payload = game.readLine(input_msg)
 
         if DEBUG:
             if input_msg == 'a\n':
-                move = bot.findBestMove(max_time=1)
+                move = bot.findBestMove(max_time=10)
+                print(bot.root)
                 print('move', move)
                 game.action(move)
 
@@ -57,8 +58,9 @@ def main() -> None:
 
         # If action is required,
         # Then Print the bots move
-        if 'action' in input_msg:
-            move = bot.findBestMove()
+        if cmd == 'action':
+            time = payload
+            move = bot.findBestMove(time / 2000)
 
             sys.stdout.write(serialize_action(move) + '\n')
             sys.stdout.flush()

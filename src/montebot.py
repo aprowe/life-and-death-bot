@@ -77,7 +77,7 @@ class Node():
     # Playout the game
     def playout(self, n=100, reps=1) -> None:
         for i in range(reps):
-            state = self.state.step(n, random=True)
+            state = self.state.step(n, random=False)
 
             if state['winner'] == self.player:
                 self.add_score(1)
