@@ -5,7 +5,8 @@ from random import shuffle
 
 import util
 from bot import Bot
-from game import Game, State
+from game import State
+from types_ import Action
 from heuristics import ScoreState, ordered_moves, HeuristicFn
 
 class Node():
@@ -15,21 +16,22 @@ class Node():
         parent: 'Node' = None,
         player: int = None,
         heuristic: HeuristicFn = ScoreState.zero,
-        explore_param: float = 0.2
+        explore_param: float = 0.2,
+        action: Action = None
         ) -> None:
 
         self.count = 0
         self.children : T.List[Node] = []
         self.parent : Node = parent
         self.state = state
-        self.action = None
+        self.action = action
 
         # Set player to parent's player
         if parent is not None:
             self.player: int = self.parent.player
             self.depth: int = self.parent.depth + 1
             self.heuristic: HeuristicFn = self.parent.heuristic
-            self.explore_param = self.parent.explore_param
+            self.explore_param: float = self.parent.explore_param
 
         # If root, set player
         else:
@@ -58,8 +60,7 @@ class Node():
         moves = ordered_moves(self.state)
         for m in moves:
             newState = self.state.apply(m)
-            c = Node(newState, self)
-            c.action = m
+            c = Node(state=newState, parent=self, action=m)
             self.children.append(c)
 
         shuffle(self.children)
@@ -140,48 +141,6 @@ class Node():
         for i in range(iterations):
             self.iterate(playout_length)
 
-    # This is where the magic happens
-    def search_tree(self, playout_length, max_depth, max_count, min_win_rate, early_exit_thresh=0.37):
-        # capture locals to pass to recurse
-        args = locals()
-        del args['self']
-
-        # Stop at max depth
-        if self.depth >= max_depth:
-            return False
-
-        # Explore children Nodes and playout
-        self.explore(playout_length)
-        self.playout_children(playout_length)
-        self.sort_children()
-
-        # Set a threshold for early exit
-        # That is, if 37 % of nodes have been explored,
-        # take the next best node
-        thresh = len(self.children) * early_exit_thresh
-        best = -np.inf
-
-        # Enumerate
-        for i, node in enumerate(self.children):
-            # If the number of games exceeds a threshold, stop searching
-            # if the win rate is good, report a good node
-            if self.depth > 0 and self.count > max_count:
-                return self.win_rate > min_win_rate
-
-            # Recurse into children, reporting if a good node has been found
-            if node.search_tree(**args):
-                return True
-
-            # If enough children have been searched, return the next best one
-            # Add 1 as a limit to prevent leaves from making this call
-            if i > thresh and node.score >= best > 1:
-                return True
-
-            # Update the best score
-            best = max(node.score, best)
-
-        return False
-
     @property
     def win_rate(self):
         return float(self.score / self.count)
@@ -230,9 +189,9 @@ class Node():
 
 # Class to Handle higher level functionality of game analysis
 class MonteBot(Bot):
-    def __init__(self, game: Game, options = {}) -> None:
-        super().__init__(game)
-        self.root = None
+    def __init__(self, **kargs) -> None:
+        super().__init__()
+        self.root: Node = None
 
         # Set Default OPtions
         self.options = {
@@ -240,12 +199,10 @@ class MonteBot(Bot):
             'playout_reps': 3,
             'max_depth': 6,
             'explore_param': 0.2,
-            **options
+            **kargs
         }
 
-    def findBestMove(self, iterations=None, max_time=None):
-        state = self.game.state
-
+    def findBestMove(self, state: State, max_time=None, max_iterations=None) -> Action:
         player = state.activePlayer
 
         # Limits
@@ -259,7 +216,7 @@ class MonteBot(Bot):
             explore_param=self.options['explore_param'],
         )
         while True:
-            if iterations is not None and i > iterations:
+            if max_iterations is not None and i > max_iterations:
                 break
 
             if max_time is not None and time.time() - start_time > max_time:

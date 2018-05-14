@@ -35,7 +35,7 @@ class Game():
         self.action((ActionType.PASS,))
 
     # Reads a line and updates state
-    def readLine(self, line: str) -> None:
+    def readLine(self, line: str) -> T.Tuple[str, T.Any]:
         # Parse incoming message
         cmd, payload = message_parser.parse_message(line)
 
@@ -55,6 +55,8 @@ class Game():
             self.state = self.state.using(
                 activePlayer = self.settings['your_botid'] + 1
             )
+
+        return cmd, payload
 
     # Reads state in from a game file
     def readGameFile(self, file: str) -> None:

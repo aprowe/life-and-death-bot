@@ -11,7 +11,7 @@ from heuristics import ScoreState
 class MinMaxBot(Bot):
     def __init__(self, game: Game, heuristic: T.Callable = ScoreState.simple,
     lookahead: int=2) -> None:
-        super().__init__(game)
+        super().__init__()
         self.lookahead = lookahead
         self.heuristic = heuristic
         self.player = CellType.PLAYER_1
@@ -58,9 +58,9 @@ class MinMaxBot(Bot):
 
     # Currently gets a random move and performs that
     # @overrides(Bot)
-    def findBestMove(self) -> Action:
-        self.player = self.game.state.activePlayer
-        moves = Bot.getMoves(self.game.state)
+    def findBestMove(self, state) -> Action:
+        self.player = state.activePlayer
+        moves = Bot.getMoves(state)
 
         best_score = -np.inf
         best_move = None
@@ -68,7 +68,7 @@ class MinMaxBot(Bot):
         #parallazable!
         for move in moves:
             #update move
-            score = self.alphabeta(self.game.state.apply(move), self.lookahead)
+            score = self.alphabeta(state.apply(move), self.lookahead)
             print(move, score)
             if best_score < score:
                 best_move = move

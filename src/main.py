@@ -30,12 +30,12 @@ def main() -> None:
 
 
     # Create our bot, with access to all the game state
-    bot = Bot(game, options={
-        'explore_param': 0.8,
-        'max_depth': 6,
-        'playout_length': 50,
-        'playout_reps': 1,
-    })
+    bot = Bot(
+        explore_param=0.8,
+        max_depth=6,
+        playout_length=50,
+        playout_reps=1,
+    )
 
     print(game)
 
@@ -46,7 +46,7 @@ def main() -> None:
 
         if DEBUG:
             if input_msg == 'a\n':
-                move = bot.findBestMove(max_time=10)
+                move = bot.findBestMove(game.state, max_time=1)
                 print(bot.root)
                 print('move', move)
                 game.action(move)
@@ -60,7 +60,7 @@ def main() -> None:
         # Then Print the bots move
         if cmd == 'action':
             time = payload
-            move = bot.findBestMove(time / 2000)
+            move = bot.findBestMove(game.state, max_time=time / 2000)
 
             sys.stdout.write(serialize_action(move) + '\n')
             sys.stdout.flush()
