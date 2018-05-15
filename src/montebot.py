@@ -6,7 +6,7 @@ from random import shuffle
 import util
 from bot import Bot
 from game import State
-from types_ import Action
+from types_ import Action, ActionType, Pass
 from heuristics import ScoreState, ordered_moves, HeuristicFn
 
 class Node():
@@ -16,7 +16,8 @@ class Node():
         parent: 'Node' = None,
         player: int = None,
         heuristic: HeuristicFn = ScoreState.zero,
-        explore_param: float = 0.2,
+        explore_param: float = 1.0,
+        rand: bool = True,
         action: Action = None
         ) -> None:
 
@@ -25,6 +26,7 @@ class Node():
         self.parent : Node = parent
         self.state = state
         self.action = action
+        self.rand = rand
 
         # Set player to parent's player
         if parent is not None:
@@ -32,6 +34,7 @@ class Node():
             self.depth: int = self.parent.depth + 1
             self.heuristic: HeuristicFn = self.parent.heuristic
             self.explore_param: float = self.parent.explore_param
+            self.rand:bool = rand
 
         # If root, set player
         else:
@@ -51,6 +54,9 @@ class Node():
         return [c.score for c in self.children]
 
     def explore(self, n=100) -> T.List['Node']:
+        if self.state['winner']:
+            return []
+
         # If Explored, no need to do again
         if len(self.children) > 0:
             return self.children
@@ -60,7 +66,7 @@ class Node():
         moves = ordered_moves(self.state)
         for m in moves:
             newState = self.state.apply(m)
-            c = Node(state=newState, parent=self, action=m)
+            c = Node(state=newState, parent=self, action=m, player=util.other(self.player))
             self.children.append(c)
 
         shuffle(self.children)
@@ -78,14 +84,15 @@ class Node():
     # Playout the game
     def playout(self, n=100, reps=1) -> None:
         for i in range(reps):
-            state = self.state.step(n, random=False)
+            state = self.state.step(n, random=self.rand)
 
-            if state['winner'] == self.player:
+            if state.winner == self.player:
                 self.add_score(1)
-            elif state['winner'] == util.other(self.player):
+            elif state.winner == util.other(self.player):
                 self.add_score(0)
             else:
                 self.add_score(0)
+
 
     # Add score, up the tree
     def add_score(self, amt=1) -> None:
@@ -124,13 +131,10 @@ class Node():
     def iterate(self, playout_length:int, playout_reps:int = 1, max_depth:int = 100) -> None:
         if self.is_leaf:
             # if itself hasn't been played out, play it out!
-            if self.count == 0:
-                self.playout(playout_length, playout_reps)
+            self.playout(playout_length, playout_reps)
 
             if self.depth <= max_depth:
                 self.explore()
-            else:
-                self.playout(playout_length, playout_reps)
 
             return
 
@@ -151,6 +155,10 @@ class Node():
 
     @property
     def best_move(self):
+        if self.is_leaf:
+            print("Warning, best move on leaf")
+            return Pass()
+
         return self.best_child.action
 
     def sort_children(self):
@@ -158,32 +166,21 @@ class Node():
 
     @property
     def is_leaf(self):
-        return len(self.children) == 0
-
-    def str(self):
-        if self.is_leaf:
-            return ''
-
-        tabs = ''.join('  ' for i in range(self.depth))
-        retVal = f'{tabs}Node(depth={self.depth}, games={self.score}/{self.count}, win_rate={self.win_rate}):\n'
-
-        for c in self.children[:5]:
-            retVal += str(c)
-
-            return retVal
-
-        retVal += f'{tabs}...{len(self.children)} more\n'
+        return len(self.children) == 0 or self.state['winner']
 
     def __str__(self):
         self.children = sorted(self.children, key=lambda c: -c.count)
 
+        # action = ','.join([str(a) for a in self.action]) if self.action is not None else ' '
+        action = ActionType.to_str(self.action) if self.action is not None else ''
         tabs = ''.join('  ' for i in range(self.depth))
-        retVal = f'{tabs}Node(depth={self.depth}, score={round(self.score, 1)}/{self.count}):\n'
+        retVal = f'{tabs}{action} Node(depth={self.depth}, score={round(self.score, 1)}/{self.count}, children={len(self.children)}):\n'
 
-        for c in self.children:
+        for c in self.children[:3]:
             if c.is_leaf:
                 continue
             retVal += str(round(self.calc_priority(c), 2)) + ':' + str(c)
+
 
         return retVal
 
@@ -199,11 +196,12 @@ class MonteBot(Bot):
             'playout_reps': 3,
             'max_depth': 6,
             'explore_param': 0.2,
+            'rand': False,
             **kargs
         }
 
     def findBestMove(self, state: State, max_time=None, max_iterations=None) -> Action:
-        player = state.activePlayer
+        player = state.nextPlayer
 
         # Limits
         start_time = time.time()
@@ -214,6 +212,7 @@ class MonteBot(Bot):
             player=player,
             heuristic=ScoreState.zero,
             explore_param=self.options['explore_param'],
+            rand=self.options['rand']
         )
         while True:
             if max_iterations is not None and i > max_iterations:
@@ -231,3 +230,11 @@ class MonteBot(Bot):
 
         self.root = root
         return root.best_move
+
+    def __str__(self):
+        val = 'MonteBot:\n'
+
+        for k,v in self.options.items():
+            val += f'{k}: {v}\n'
+
+        return val

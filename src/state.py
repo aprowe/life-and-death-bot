@@ -123,6 +123,10 @@ class State(PDict):
     def nextPlayer(self) -> int:
         return self['activePlayer'] % 2 + 1
 
+    @property
+    def winner(self) -> int:
+        return self['winner']
+
     def is_empty(self) -> bool:
         return bool(np.sum(self.board) == 0)
 

@@ -15,6 +15,15 @@ class ActionType(Enum):
     def __repr__(self):
         return self.value
 
+    @staticmethod
+    def to_str(action: 'Action') -> str:
+        val = str(action[0].value)[0]
+
+        if action[0] == ActionType.KILL or action[0] == ActionType.BIRTH:
+            val += f' {action[1][0]},{action[1][1]}'
+
+        return val
+
 # Create Coord Type
 Coord = T.Tuple[int, int]
 

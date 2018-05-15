@@ -18,20 +18,20 @@ def main() -> None:
 
     if DEBUG:
         # Load Game state
-        # game.state = State({
-        #     'board': np.array([
-        #         [1,1,0,0],
-        #         [1,1,0,0],
-        #         [0,0,0,0],
-        #         [0,0,0,0],
-        #     ])
-        # })
-        game.readGameFile('test/game2.txt')
+        game.state = State({
+            'board': np.array([
+                [1,1,0,0],
+                [1,1,0,0],
+                [0,0,2,2],
+                [0,0,2,2],
+            ])
+        })
+        # game.readGameFile('test/game2.txt')
 
 
     # Create our bot, with access to all the game state
     bot = Bot(
-        explore_param=0.8,
+        explore_param=1.4,
         max_depth=6,
         playout_length=50,
         playout_reps=1,

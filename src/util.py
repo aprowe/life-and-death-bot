@@ -97,20 +97,19 @@ def iterate(board: np.array) -> np.array:
     retVal[survive] = board[survive]
     return retVal
 
-def random_move(board: np.array) -> np.array:
+def random_move(board: np.array, birth_freq=0.33, kill_freq=1.0) -> np.array:
     board = board.copy()
     rand = np.random.rand(*board.shape)
 
-    birth_freq = 0.33
-    kill_freq = 1.0
     weight = 1 / (board.shape[0] * board.shape[1])
 
     kill_freq  += birth_freq
     kill_freq  *= weight
     birth_freq *= weight
 
-    board[rand < kill_freq]  = 0
-    board[rand < birth_freq] = int(random.uniform(0,2))
+    board[(birth_freq < rand) & (rand < kill_freq)]  = 0
+    board[(birth_freq / 2 < rand) & (rand < birth_freq)] = 1
+    board[(0 < rand) & (rand < birth_freq / 2)] = 2
 
     return board
 
@@ -168,7 +167,7 @@ def get_subboards(board : np.array, size : int, offset=None) -> np.array:
 def check_win(board: np.array) -> int:
     if not np.any(board == 1):
         return 2
-        
+
     if not np.any(board == 2):
         return 1
 
@@ -282,6 +281,8 @@ def board_to_str(board: np.array, last_move:Action = None) -> str:
                 color = 'red'
             elif i == ty and j == tx:
                 color = 'green'
+                output.append(cprint.str(color, 'X' + ' '))
+                continue
             elif cell == 1:
                 color = 'purple'
             elif cell == 2:
